@@ -1,94 +1,140 @@
-/* Background */
-body {
+/* Reset */
+* {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: url("https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=1920&q=80") no-repeat center center/cover;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Background */
+body, html {
+  height: 100%;
+  overflow: hidden;
+}
+
+.background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('wallpaper.jpg') no-repeat center center/cover;
+  filter: blur(0px);
+  z-index: -1;
+}
+
+/* Glass Windows */
+.window {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  max-height: 400px;
+  padding: 20px;
+  overflow-y: auto;
+
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+/* Window Header */
+.window h2 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 10px;
+}
+
+/* Inputs & Buttons */
+input, button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  margin: 5px 0;
+}
+
+input {
+  width: 100%;
+  background: rgba(255,255,255,0.15);
   color: white;
 }
 
-/* Glass UI Elements */
-.navbar, .profile, .tab, .bottom-nav {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(15px) saturate(180%);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-}
-
-/* Navbar */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px 30px;
-  margin: 20px;
-}
-
-/* Profile */
-.profile {
-  text-align: center;
-  margin: 20px auto;
-  padding: 20px;
-  width: 200px;
-}
-.profile img {
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.4);
-  margin-bottom: 10px;
-}
-
-/* Tabs (Pages) */
-.tab {
-  display: none;
-  padding: 20px;
-  margin: 20px;
-}
-.tab.active {
-  display: block;
-}
-
-/* Bottom Nav */
-.bottom-nav {
-  display: flex;
-  justify-content: space-around;
-  padding: 10px;
-  margin: 10px;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-.bottom-nav button {
-  background: transparent;
-  border: none;
-  font-size: 26px;
+button {
+  background: rgba(0, 122, 255, 0.8);
   color: white;
   cursor: pointer;
-  padding: 10px;
-}
-.bottom-nav button:hover {
-  transform: scale(1.2);
+  transition: 0.2s;
 }
 
-/* Uploads */
-#photoGallery img {
-  width: 80px;
-  margin: 5px;
-  border-radius: 10px;
+button:hover {
+  background: rgba(0, 122, 255, 1);
 }
 
-/* Logout Button */
-.logout {
-  background: #d73a49;
+/* Dock */
+.dock {
+  position: fixed;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  padding: 10px 20px;
+  border-radius: 22px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+.dock-icon {
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+
+.dock-icon:hover {
+  transform: scale(1.25);
+}
+
+/* File list */
+#docList {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
   color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
 }
-.logout:hover { background: #f85149; }
 
-/* Hide elements */
-.hidden { display: none; }
+#docList li {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
+  margin-bottom: 5px;
+}
+
+/* Photo gallery */
+#photoGallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.preview-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
