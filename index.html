@@ -3,138 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Page</title>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: url("https://picsum.photos/1920/1080?blur=3") no-repeat center center/cover;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .container {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 40px;
-      width: 350px;
-      color: white;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      outline: none;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #238636;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:hover {
-      background: #2ea043;
-    }
-
-    .link {
-      margin-top: 15px;
-      text-align: center;
-    }
-
-    .link a {
-      color: #58a6ff;
-      cursor: pointer;
-    }
-  </style>
+  <title>Login | My Platform</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container" id="login-container">
+  <div class="container">
     <h2>Login</h2>
-    <input type="text" id="login-username" placeholder="Username / Admin ID">
-    <input type="password" id="login-password" placeholder="Password">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
     <button onclick="login()">Login</button>
     <div class="link">
-      <a onclick="showRegister()">Register</a>
+      <a href="#" onclick="showRegister()">Register New User</a>
     </div>
   </div>
 
-  <div class="container" id="register-container" style="display:none;">
+  <div class="card hidden" id="registerCard">
     <h2>Register</h2>
-    <input type="text" id="register-username" placeholder="New Username">
-    <input type="password" id="register-password" placeholder="New Password">
+    <input type="text" id="newUser" placeholder="New Username" required>
+    <input type="password" id="newPass" placeholder="New Password" required>
     <button onclick="register()">Register</button>
     <div class="link">
-      <a onclick="showLogin()">Back to Login</a>
+      <a href="#" onclick="hideRegister()">Back to Login</a>
     </div>
   </div>
 
   <script>
-    function showRegister() {
-      document.getElementById("login-container").style.display = "none";
-      document.getElementById("register-container").style.display = "block";
+    // Temporary user database
+    let users = {
+      "arkandu.khan": "Arkandu@1998" // Admin login
+    };
+
+    function login() {
+      let u = document.getElementById("username").value;
+      let p = document.getElementById("password").value;
+
+      if (users[u] && users[u] === p) {
+        localStorage.setItem("loggedInUser", u);
+        window.location.href = "home.html";
+      } else {
+        alert("Invalid login. Please try again!");
+      }
     }
 
-    function showLogin() {
-      document.getElementById("register-container").style.display = "none";
-      document.getElementById("login-container").style.display = "block";
+    function showRegister() {
+      document.querySelector(".container").classList.add("hidden");
+      document.getElementById("registerCard").classList.remove("hidden");
+    }
+
+    function hideRegister() {
+      document.querySelector(".container").classList.remove("hidden");
+      document.getElementById("registerCard").classList.add("hidden");
     }
 
     function register() {
-      let username = document.getElementById("register-username").value.trim();
-      let password = document.getElementById("register-password").value.trim();
+      let newUser = document.getElementById("newUser").value;
+      let newPass = document.getElementById("newPass").value;
 
-      if (username && password) {
-        let users = JSON.parse(localStorage.getItem("users")) || {};
-        if (users[username]) {
-          alert("⚠️ Username already exists!");
+      if (newUser && newPass) {
+        if (users[newUser]) {
+          alert("User already exists!");
         } else {
-          users[username] = password;
-          localStorage.setItem("users", JSON.stringify(users));
-          alert("✅ Registration successful! Please login.");
-          showLogin();
+          users[newUser] = newPass;
+          alert("User registered successfully! Now login.");
+          hideRegister();
         }
       } else {
-        alert("⚠️ Please enter a username and password.");
-      }
-    }
-
-    function login() {
-      let username = document.getElementById("login-username").value.trim();
-      let password = document.getElementById("login-password").value.trim();
-
-      // Check for admin login
-      if (username === "arkandu.khan" && password === "Arkandu@1998") {
-        localStorage.setItem("loggedInUser", "Admin Arkandu");
-        window.location.href = "home.html";
-        return;
-      }
-
-      // Check for normal user
-      let users = JSON.parse(localStorage.getItem("users")) || {};
-      if (users[username] && users[username] === password) {
-        localStorage.setItem("loggedInUser", username);
-        window.location.href = "home.html";
-      } else {
-        alert("❌ Invalid credentials!");
+        alert("Please enter a username and password.");
       }
     }
   </script>
