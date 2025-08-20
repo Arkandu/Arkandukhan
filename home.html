@@ -3,12 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Vision Home</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: url("https://images.unsplash.com/photo-1525182008055-f88b95ff7980") no-repeat center center/cover;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    .logout-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      padding: 8px 15px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.4);
+    }
+
+    .profile {
+      text-align: center;
+      margin: 20px;
+    }
+
+    .profile img {
+      border-radius: 50%;
+      width: 90px;
+      height: 90px;
+      border: 2px solid rgba(255,255,255,0.5);
+    }
+
+    .profile h3 {
+      color: white;
+      margin-top: 10px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 30px;
+      flex: 1;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      transition: 0.3s;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+
+    .admin-only {
+      background: linear-gradient(135deg, rgba(0,200,255,0.3), rgba(0,120,255,0.3));
+    }
+  </style>
 </head>
 <body>
   <div class="navbar">
-    <h2>🚀 My Drive</h2>
+    <h2>🍏 Vision Drive</h2>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 
@@ -34,7 +116,6 @@
       document.getElementById("welcomeText").innerText = "Welcome, " + user;
     }
 
-    // Show Admin-only card if logged in as admin
     if (user !== "arkandu.khan") {
       document.querySelector(".admin-only").style.display = "none";
     }
