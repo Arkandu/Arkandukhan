@@ -1,194 +1,967 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vision OS Desktop</title>
-  <style>
-    /* Reset */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vision</title>
+<style>
+  :root{
+    --glass-bg: rgba(255,255,255,0.15);
+    --glass-strong: rgba(255,255,255,0.25);
+    --text: #fff;
+    --accent: #0a84ff;
+    --danger: #ff3b30;
+    --ok: #34c759;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial}
+  body{overflow:hidden;color:var(--text)}
+  /* Background */
+  #bg {
+    position:fixed; inset:0;
+    background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+    filter: saturate(120%);
+    z-index:-2;
+  }
+  #bgTint {
+    position:fixed; inset:0; backdrop-filter: blur(18px) brightness(0.9); z-index:-1;
+  }
 
-    body, html {
-      width: 100%;
-      height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: url('https://wallpapercave.com/wp/wp9118105.jpg') no-repeat center center / cover;
-      overflow: hidden;
-    }
+  /* Top bar (mac style) */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:32px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 10px; font-size:13px; letter-spacing:.2px;
+    background: var(--glass-bg); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .top-left span{margin-right:14px; cursor:pointer}
+  .top-right{font-variant-numeric: tabular-nums}
+  .badge{padding:.5px 6px; border-radius:10px; background:var(--glass-strong); margin-left:8px}
 
-    /* Top Menu Bar */
-    .menu-bar {
-      height: 28px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 10px;
-      font-size: 14px;
-    }
-    .menu-left span { margin-right: 15px; cursor: pointer; }
-    .menu-right { font-family: monospace; }
+  /* Dock */
+  .dock{
+    position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
+    display:flex; gap:18px; padding:10px 16px; border-radius:20px;
+    background: var(--glass-bg); backdrop-filter: blur(18px);
+    box-shadow:0 8px 28px rgba(0,0,0,.3);
+  }
+  .dock button{
+    font-size:22px; border:none; outline:0; background:transparent; color:#fff; cursor:pointer;
+    padding:6px 8px; border-radius:12px; transition: transform .12s ease;
+  }
+  .dock button:hover{transform:scale(1.15)}
+  .hidden{display:none !important}
 
-    /* Dock */
-    .dock {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .dock-icon {
-      font-size: 28px;
-      margin: 0 10px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .dock-icon:hover { transform: scale(1.2); }
+  /* Windows / Panels */
+  .window{
+    position:absolute; top:56px; left:50%; transform:translateX(-50%);
+    width:min(1020px, 92vw); height:72vh;
+    background: var(--glass-bg); backdrop-filter: blur(18px) saturate(140%);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.35);
+    overflow:hidden; display:none;
+  }
+  .win-head{
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 12px; background: rgba(0,0,0,.2); border-bottom:1px solid rgba(255,255,255,.2);
+    font-weight:600;
+  }
+  .win-body{height:calc(100% - 44px); display:flex}
 
-    /* Finder Window */
-    .finder {
-      position: absolute;
-      top: 60px;
-      left: 50px;
-      width: 80%;
-      height: 70%;
-      background: rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(15px);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-      display: none;
-      overflow: hidden;
-    }
-    .finder-header {
-      background: rgba(0,0,0,0.1);
-      padding: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-    }
-    .finder-body {
-      display: flex;
-      height: calc(100% - 40px);
-    }
-    .sidebar {
-      width: 200px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 10px;
-    }
-    .sidebar div {
-      margin: 10px 0;
-      cursor: pointer;
-    }
-    .file-area {
-      flex: 1;
-      padding: 10px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, 100px);
-      gap: 15px;
-      align-content: flex-start;
-    }
-    .file {
-      text-align: center;
-      cursor: pointer;
-    }
-    .file img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-  </style>
+  /* Sidebar */
+  .sidebar{
+    width:220px; padding:10px; border-right:1px solid rgba(255,255,255,.2);
+    background: rgba(0,0,0,.15); overflow:auto;
+  }
+  .side-item{
+    padding:10px 12px; border-radius:10px; cursor:pointer; display:flex; align-items:center; gap:10px;
+  }
+  .side-item:hover{background:rgba(255,255,255,.15)}
+  .side-item.active{background:rgba(255,255,255,.25)}
+  .content{flex:1; padding:14px; overflow:auto}
+
+  /* Login card */
+  .center-wrap{position:fixed; inset:0; display:grid; place-items:center}
+  .card{
+    width:min(420px, 92vw);
+    background: var(--glass-bg); backdrop-filter: blur(18px);
+    border:1px solid rgba(255,255,255,.25); border-radius:18px;
+    padding:22px; box-shadow:0 10px 40px rgba(0,0,0,.35);
+  }
+  .card h2{margin:0 0 14px}
+  .row{display:flex; gap:10px}
+  .input, select, .btn{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.25);
+    background: rgba(0,0,0,.25); color:#fff; outline:0; font-size:14px;
+  }
+  .btn{background: var(--accent); border:none; cursor:pointer; font-weight:600}
+  .btn.alt{background: rgba(255,255,255,.2)}
+  .btn.danger{background: var(--danger)}
+  .hint{font-size:12px; opacity:.85; margin-top:6px; text-align:center; cursor:pointer}
+
+  /* Home */
+  .profile{
+    display:flex; gap:18px; align-items:center; background:rgba(0,0,0,.2);
+    padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,.2)
+  }
+  .avatar{width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.5)}
+  .grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-top:14px}
+  .cardy{background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.2); padding:14px; border-radius:14px}
+
+  /* Files (Finder-like) */
+  .toolbar{display:flex; gap:8px; margin-bottom:10px; align-items:center; flex-wrap:wrap}
+  .pill{padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25); cursor:pointer}
+  .pill:hover{background:rgba(255,255,255,.25)}
+  .filegrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px}
+  .file{
+    background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:10px;
+    display:flex; gap:10px; align-items:center; position:relative;
+  }
+  .thumb{width:48px; height:48px; border-radius:8px; object-fit:cover; background:#222}
+  .fname{flex:1; font-size:14px; outline:none}
+  .meta{font-size:12px; opacity:.8}
+  .folder{background:linear-gradient(180deg,#58a6ff66,#0066ff44)}
+  .rightmenu{
+    position:fixed; z-index:10; background:rgba(0,0,0,.8); color:#fff; border-radius:10px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.25); display:none; min-width:160px;
+  }
+  .rightmenu button{width:100%; text-align:left; background:transparent; border:none; color:#fff; padding:10px 12px; cursor:pointer}
+  .rightmenu button:hover{background:rgba(255,255,255,.12)}
+
+  /* Settings forms */
+  .formgrid{display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:12px}
+  label{font-size:12px; opacity:.85; margin-bottom:6px; display:block}
+
+  /* Tables */
+  table{width:100%; border-collapse:collapse}
+  th,td{padding:10px; border-bottom:1px solid rgba(255,255,255,.2); text-align:left}
+  .switch{display:flex; align-items:center; gap:8px}
+
+  @media (max-width:720px){
+    .sidebar{display:none}
+    .window{width:96vw; height:74vh}
+  }
+</style>
 </head>
 <body>
+  <div id="bg"></div><div id="bgTint"></div>
 
-  <!-- Top Menu Bar -->
-  <div class="menu-bar">
-    <div class="menu-left">
-      <span onclick="openFinder()">Finder</span>
-      <span>File</span>
-      <span>Edit</span>
-      <span>View</span>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="top-left">
+      <span id="brandBtn">Vision</span>
+      <span id="menuHome">Home</span>
+      <span id="menuFiles">Files</span>
+      <span id="menuReports">Reports</span>
+      <span id="menuSettings">Settings</span>
+      <span id="menuManage" class="hidden">Management</span>
     </div>
-    <div class="menu-right" id="time"></div>
-  </div>
-
-  <!-- Finder Window -->
-  <div class="finder" id="finderWindow">
-    <div class="finder-header">
-      <span>Finder - Vision</span>
-      <span onclick="closeFinder()" style="cursor:pointer;">✖</span>
-    </div>
-    <div class="finder-body">
-      <div class="sidebar">
-        <div onclick="showFolder('home')">🏠 Home</div>
-        <div onclick="showFolder('docs')">📂 Documents</div>
-        <div onclick="showFolder('photos')">🖼️ Photos</div>
-        <div onclick="showFolder('reports')">📊 Reports</div>
-        <div onclick="showFolder('settings')">⚙️ Settings</div>
-      </div>
-      <div class="file-area" id="fileArea">
-        <!-- Files will show here -->
-      </div>
+    <div class="top-right">
+      <span id="whoami">Guest</span>
+      <span class="badge" id="roleBadge">User</span>
+      <span id="clock"></span>
     </div>
   </div>
 
   <!-- Dock -->
-  <div class="dock">
-    <div class="dock-icon" onclick="openFinder()">🗂️</div>
-    <div class="dock-icon">🌐</div>
-    <div class="dock-icon">💬</div>
-    <div class="dock-icon">⚙️</div>
+  <div class="dock" id="dock">
+    <button title="Home" id="dockHome">🏠</button>
+    <button title="Files" id="dockFiles">📂</button>
+    <button title="Reports" id="dockReports">📊</button>
+    <button title="Settings" id="dockSettings">⚙️</button>
+    <button title="Management" id="dockManage" class="hidden">👥</button>
+    <button title="Logout" id="dockLogout">🔓</button>
   </div>
 
-  <script>
-    // Show current time
-    function updateTime() {
-      document.getElementById("time").textContent = new Date().toLocaleTimeString();
-    }
-    setInterval(updateTime, 1000);
-    updateTime();
+  <!-- Login -->
+  <div class="center-wrap" id="loginWrap">
+    <div class="card">
+      <h2>Login</h2>
+      <div class="row">
+        <select id="loginType">
+          <option value="user">User Login</option>
+          <option value="admin">Admin Login</option>
+        </select>
+      </div>
+      <input class="input" id="loginUser" placeholder="Username" autocomplete="username">
+      <input class="input" id="loginPass" placeholder="Password" type="password" autocomplete="current-password">
+      <button class="btn" id="btnLogin">Login</button>
+      <div class="row">
+        <button class="btn alt" id="btnShowRegister">Register New User</button>
+        <button class="btn alt" id="btnForgot">Forgot Username/Password</button>
+      </div>
+      <!-- Register -->
+      <div id="regBox" class="hidden" style="margin-top:12px">
+        <h3 style="margin:8px 0">Register</h3>
+        <input class="input" id="regName" placeholder="Full Name">
+        <input class="input" id="regEmail" placeholder="Email">
+        <input class="input" id="regPhone" placeholder="Phone">
+        <input class="input" id="regUser" placeholder="Username">
+        <input class="input" id="regPass" placeholder="Password" type="password">
+        <button class="btn" id="btnRegister">Create Account</button>
+      </div>
+    </div>
+  </div>
 
-    // Open/close Finder
-    function openFinder() {
-      document.getElementById("finderWindow").style.display = "block";
-    }
-    function closeFinder() {
-      document.getElementById("finderWindow").style.display = "none";
-    }
+  <!-- Home window -->
+  <section class="window" id="winHome">
+    <div class="win-head"><span>Home</span></div>
+    <div class="win-body">
+      <div class="sidebar">
+        <div class="side-item active">Overview</div>
+      </div>
+      <div class="content">
+        <div class="profile">
+          <img id="homeAvatar" class="avatar" src="https://via.placeholder.com/128" alt="">
+          <div>
+            <div style="font-weight:700; font-size:18px" id="homeName">User</div>
+            <div id="homeEmail">user@example.com</div>
+            <div id="homePhone">+91-0000000000</div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="cardy">
+            <div style="font-weight:700; margin-bottom:8px">Weather</div>
+            <div id="weatherText">Set your city in Settings → Weather to see details.</div>
+          </div>
+          <div class="cardy">
+            <div style="font-weight:700; margin-bottom:8px">Quick Stats</div>
+            <div>Logins this session: <span id="statLogins">0</span></div>
+            <div>Total files: <span id="statFiles">0</span></div>
+            <div>Storage used: <span id="statStorage">0 KB</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    // Folder views
-    function showFolder(folder) {
-      const fileArea = document.getElementById("fileArea");
-      fileArea.innerHTML = "";
+  <!-- Files window -->
+  <section class="window" id="winFiles">
+    <div class="win-head"><span>Files</span></div>
+    <div class="win-body">
+      <div class="sidebar">
+        <div class="side-item active" data-filter="all">All Items</div>
+        <div class="side-item" data-filter="primary">Primary</div>
+        <div class="side-item" data-filter="archive">Archive</div>
+        <div class="side-item" data-filter="folders">Folders</div>
+      </div>
+      <div class="content">
+        <div class="toolbar">
+          <label class="pill">
+            Upload
+            <input type="file" id="fileInput" multiple style="display:none" />
+          </label>
+          <button class="pill" id="btnCreateFolder">New Folder</button>
+          <button class="pill" id="btnClear">Clear All</button>
+          <select class="pill" id="folderSelect"></select>
+          <button class="pill" id="btnGoParent">⬆️ Up</button>
+          <span id="cwd" class="pill" title="Current folder">/</span>
+        </div>
+        <div id="dropzone" style="border:1px dashed rgba(255,255,255,.35); border-radius:12px; padding:8px; margin-bottom:10px; text-align:center">Drag & Drop files here</div>
+        <div class="filegrid" id="fileGrid"></div>
+        <div class="rightmenu" id="ctx">
+          <button data-act="rename">Rename</button>
+          <button data-act="download">Download</button>
+          <button data-act="movePrimary">Mark Primary</button>
+          <button data-act="moveArchive">Move to Archive</button>
+          <button data-act="delete">Delete</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      if (folder === "home") {
-        fileArea.innerHTML = `<div class="file">🏠 <br> Welcome Home</div>`;
-      }
-      if (folder === "docs") {
-        fileArea.innerHTML = `
-          <div class="file"><img src="https://img.icons8.com/fluency/100/document.png"/><br>Doc1</div>
-          <div class="file"><img src="https://img.icons8.com/fluency/100/document.png"/><br>Doc2</div>`;
-      }
-      if (folder === "photos") {
-        fileArea.innerHTML = `
-          <div class="file"><img src="https://picsum.photos/100"/><br>Photo1</div>
-          <div class="file"><img src="https://picsum.photos/101"/><br>Photo2</div>`;
-      }
-      if (folder === "reports") {
-        fileArea.innerHTML = `<div class="file">📊 Login Usage Report</div>`;
-      }
-      if (folder === "settings") {
-        fileArea.innerHTML = `<div class="file">⚙️ Change Wallpaper</div>`;
-      }
+  <!-- Reports window -->
+  <section class="window" id="winReports">
+    <div class="win-head"><span>Reports</span></div>
+    <div class="win-body">
+      <div class="sidebar">
+        <div class="side-item active" data-rview="user">User Report</div>
+        <div class="side-item" id="adminReportTab" data-rview="admin">Admin Report</div>
+      </div>
+      <div class="content">
+        <div id="userReport">
+          <h3>Your Activity</h3>
+          <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Total Files</td><td id="r_user_files">0</td></tr>
+            <tr><td>Storage Used</td><td id="r_user_storage">0 KB</td></tr>
+            <tr><td>Login Duration</td><td id="r_user_duration">0m</td></tr>
+          </table>
+        </div>
+        <div id="adminReport" class="hidden">
+          <h3>All Users</h3>
+          <table>
+            <tr><th>Users</th><td id="r_admin_users">0</td></tr>
+            <tr><th>Total Files</th><td id="r_admin_files">0</td></tr>
+            <tr><th>Total Storage</th><td id="r_admin_storage">0 KB</td></tr>
+            <tr><th>Total Login Duration</th><td id="r_admin_duration">0m</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings window -->
+  <section class="window" id="winSettings">
+    <div class="win-head"><span>Settings</span></div>
+    <div class="win-body">
+      <div class="sidebar">
+        <div class="side-item active" data-s="profile">Profile</div>
+        <div class="side-item" data-s="appearance">Appearance</div>
+        <div class="side-item" data-s="security">Security</div>
+        <div class="side-item" data-s="weather">Weather</div>
+      </div>
+      <div class="content">
+        <div id="setProfile">
+          <div class="formgrid">
+            <div>
+              <label>Name</label>
+              <input class="input" id="setName">
+            </div>
+            <div>
+              <label>Email</label>
+              <input class="input" id="setEmail">
+            </div>
+            <div>
+              <label>Phone</label>
+              <input class="input" id="setPhone">
+            </div>
+            <div>
+              <label>Profile Picture</label>
+              <input type="file" id="setAvatar" accept="image/*" class="input">
+            </div>
+          </div>
+        </div>
+        <div id="setAppearance" class="hidden">
+          <div class="formgrid">
+            <div>
+              <label>Background Image</label>
+              <input type="file" id="setBg" accept="image/*" class="input">
+            </div>
+            <div class="switch">
+              <input type="checkbox" id="dimBg">
+              <label for="dimBg">Dim/Blur Background</label>
+            </div>
+          </div>
+        </div>
+        <div id="setSecurity" class="hidden">
+          <div class="formgrid">
+            <div>
+              <label>Current Password</label>
+              <input class="input" id="curPass" type="password">
+            </div>
+            <div>
+              <label>New Password</label>
+              <input class="input" id="newPass" type="password">
+            </div>
+            <div>
+              <label>Confirm New Password</label>
+              <input class="input" id="newPass2" type="password">
+            </div>
+          </div>
+          <button class="btn" id="btnChangePass" style="margin-top:10px">Change Password</button>
+        </div>
+        <div id="setWeather" class="hidden">
+          <div class="formgrid">
+            <div>
+              <label>City (for demo)</label>
+              <input class="input" id="setCity" placeholder="e.g., Kolkata">
+            </div>
+            <div>
+              <label>Temperature (°C)</label>
+              <input class="input" id="setTemp" type="number" placeholder="e.g., 31">
+            </div>
+            <div>
+              <label>Conditions</label>
+              <input class="input" id="setCond" placeholder="e.g., Partly Cloudy">
+            </div>
+          </div>
+          <div class="hint">Real APIs can be wired later.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Management window (Admin only) -->
+  <section class="window" id="winManage">
+    <div class="win-head"><span>User Management</span></div>
+    <div class="win-body">
+      <div class="sidebar">
+        <div class="side-item active">All Users</div>
+      </div>
+      <div class="content">
+        <table id="mgmtTable">
+          <thead>
+            <tr>
+              <th>User</th><th>Email</th><th>Restricted</th><th>Storage Limit (MB)</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div style="margin-top:10px">
+          <label>Change Selected User Background <input type="file" id="mgmtBg" accept="image/*"></label>
+          <label style="margin-left:16px">Change Profile Picture <input type="file" id="mgmtAvatar" accept="image/*"></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<script>
+/* -------------------- Storage Helpers -------------------- */
+const LS = {
+  get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch{ return d } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)) }
+};
+const KEY_USERS = 'vision_users';
+const KEY_SESSION = 'vision_session'; // {username, loginAt}
+const ADMIN = { username:'arkandu.khan', password:'Arkandu@1998', name:'Admin', email:'admin@vision.local', phone:'+91-0000000000', role:'admin', restricted:false, limitMB: 5120, avatar:null, bg:null, weather:{ city:'', temp:'', cond:'' } };
+
+function ensureAdmin(){
+  const users = LS.get(KEY_USERS, {});
+  if(!users[ADMIN.username]){ users[ADMIN.username] = {...ADMIN}; LS.set(KEY_USERS, users); }
+}
+ensureAdmin();
+
+/* -------------------- Session/UI State -------------------- */
+let currentUser = null;        // user object
+let cwd = '/';                 // current folder
+let lastRightClick = null;     // last clicked item {id,type}
+let loginCount = 0;
+let sessionStart = 0;
+
+function now(){ return Date.now() }
+function fmtBytes(n){
+  if(n<1024) return `${n} B`;
+  if(n<1024*1024) return `${(n/1024).toFixed(1)} KB`;
+  if(n<1024*1024*1024) return `${(n/1024/1024).toFixed(1)} MB`;
+  return `${(n/1024/1024/1024).toFixed(1)} GB`;
+}
+
+/* -------------------- Simple “FS” per user --------------------
+  Stored under users[username].fs
+  { folders: { "/": {name:"/", parent:null, children:["/Photos", "/Docs"] , tag:"primary"} }, files: {id:{name,type,size,blob,folder:"/", tag:"primary"}} }
+-----------------------------------------------------------------*/
+function initFS(u){
+  if(!u.fs){
+    u.fs = { folders:{ "/":{ name:"/", parent:null, children:[], tag:"primary"} }, files:{} };
+  }
+}
+function saveUser(u){ const users=LS.get(KEY_USERS,{}); users[u.username]=u; LS.set(KEY_USERS, users); }
+function getUsers(){ return LS.get(KEY_USERS,{}); }
+
+/* -------------------- Login / Register -------------------- */
+const el = id => document.getElementById(id);
+el('btnShowRegister').onclick = ()=> el('regBox').classList.toggle('hidden');
+
+el('btnRegister').onclick = ()=>{
+  const username = el('regUser').value.trim();
+  const password = el('regPass').value;
+  const name = el('regName').value.trim() || username;
+  const email = el('regEmail').value.trim();
+  const phone = el('regPhone').value.trim();
+  if(!username || !password){ alert('Username & password required'); return; }
+  const users = getUsers();
+  if(users[username]){ alert('Username already exists'); return; }
+  users[username] = { username, password, name, email, phone, role:'user', restricted:false, limitMB:1024, avatar:null, bg:null, weather:{city:'',temp:'',cond:''}};
+  initFS(users[username]);
+  LS.set(KEY_USERS, users);
+  alert('Registered. You can login now.');
+  el('regBox').classList.add('hidden');
+};
+
+el('btnForgot').onclick = ()=>{
+  alert('Demo: Ask admin to reset password or check your email (not wired in demo).');
+};
+
+el('btnLogin').onclick = ()=>{
+  const type = el('loginType').value;
+  const username = el('loginUser').value.trim();
+  const password = el('loginPass').value;
+
+  const users = getUsers();
+  const u = users[username];
+
+  if(type==='admin'){
+    if(username===ADMIN.username && password===ADMIN.password){
+      loginSuccess(users[ADMIN.username]);
+    }else{
+      alert('Invalid admin credentials');
     }
-  </script>
+  }else{
+    if(!u){ alert('User not found'); return; }
+    if(u.restricted){ alert('Your account is restricted. Contact admin.'); return; }
+    if(u.password!==password){ alert('Wrong password'); return; }
+    loginSuccess(u);
+  }
+};
+
+function loginSuccess(u){
+  initFS(u);
+  currentUser = u;
+  sessionStart = now();
+  loginCount++;
+  LS.set(KEY_SESSION, { username:u.username, loginAt: sessionStart });
+  renderByRole();
+  applyProfileToUI();
+  openWin('winHome');
+  el('loginWrap').classList.add('hidden');
+}
+
+/* -------------------- Logout -------------------- */
+function logout(){
+  currentUser = null;
+  LS.set(KEY_SESSION, null);
+  el('loginWrap').classList.remove('hidden');
+  hideAllWindows();
+  el('whoami').textContent = 'Guest';
+  el('roleBadge').textContent = 'User';
+  setDefaultBackground();
+}
+
+/* -------------------- Top/Dock navigation -------------------- */
+function hideAllWindows(){ document.querySelectorAll('.window').forEach(w=>w.style.display='none'); }
+function openWin(id){ hideAllWindows(); el(id).style.display='block'; updateStats(); refreshFiles(); refreshReports(); refreshMgmt(); }
+['menuHome','dockHome','brandBtn'].forEach(i=> el(i).onclick = ()=> openWin('winHome'));
+['menuFiles','dockFiles'].forEach(i=> el(i).onclick = ()=> openWin('winFiles'));
+['menuReports','dockReports'].forEach(i=> el(i).onclick = ()=> openWin('winReports'));
+['menuSettings','dockSettings'].forEach(i=> el(i).onclick = ()=> openWin('winSettings'));
+['menuManage','dockManage'].forEach(i=> el(i)?.onclick = ()=> openWin('winManage'));
+el('dockLogout').onclick = logout;
+
+function renderByRole(){
+  const isAdmin = currentUser.role==='admin';
+  el('menuManage').classList.toggle('hidden', !isAdmin);
+  el('dockManage').classList.toggle('hidden', !isAdmin);
+  el('adminReportTab').classList.toggle('hidden', !isAdmin);
+  el('roleBadge').textContent = isAdmin ? 'Admin' : 'User';
+  el('whoami').textContent = currentUser.username;
+  // Background & avatar
+  applyBackground(currentUser.bg);
+}
+
+/* -------------------- Clock -------------------- */
+setInterval(()=>{ el('clock').textContent = new Date().toLocaleTimeString(); }, 1000);
+
+/* -------------------- Home & Stats -------------------- */
+function applyProfileToUI(){
+  el('homeName').textContent = currentUser.name || currentUser.username;
+  el('homeEmail').textContent = currentUser.email || '—';
+  el('homePhone').textContent = currentUser.phone || '—';
+  if(currentUser.avatar){ el('homeAvatar').src = currentUser.avatar; }
+  // Weather demo
+  const w = currentUser.weather||{};
+  el('weatherText').textContent = (w.city? `${w.city}: ${w.temp||'—'}°C, ${w.cond||'—'}` : 'Set your city in Settings → Weather to see details.');
+  // Fill Settings fields
+  el('setName').value = currentUser.name||'';
+  el('setEmail').value = currentUser.email||'';
+  el('setPhone').value = currentUser.phone||'';
+  el('setCity').value = w.city||'';
+  el('setTemp').value = w.temp||'';
+  el('setCond').value = w.cond||'';
+  el('dimBg').checked = true;
+}
+function updateStats(){
+  const u = currentUser;
+  let totalSize=0, count=0;
+  Object.values(u.fs.files).forEach(f=>{ totalSize+=f.size||0; count++; });
+  el('statLogins').textContent = loginCount;
+  el('statFiles').textContent = count;
+  el('statStorage').textContent = fmtBytes(totalSize);
+}
+
+/* -------------------- Settings actions -------------------- */
+el('setName').oninput = saveProfile; el('setEmail').oninput = saveProfile; el('setPhone').oninput = saveProfile;
+function saveProfile(){
+  currentUser.name = el('setName').value.trim();
+  currentUser.email = el('setEmail').value.trim();
+  currentUser.phone = el('setPhone').value.trim();
+  saveUser(currentUser); applyProfileToUI();
+}
+el('setAvatar').onchange = (e)=> fileToDataURL(e.target.files[0], (url)=> { currentUser.avatar=url; saveUser(currentUser); applyProfileToUI(); });
+
+function setDefaultBackground(){
+  el('bg').style.backgroundImage = "url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80')";
+}
+function applyBackground(url){
+  if(url){ el('bg').style.backgroundImage = `url('${url}')`; } else { setDefaultBackground(); }
+}
+el('setBg').onchange = (e)=> fileToDataURL(e.target.files[0], (url)=> { currentUser.bg=url; saveUser(currentUser); applyBackground(url); });
+el('dimBg').onchange = (e)=>{ el('bgTint').style.backdropFilter = e.target.checked ? 'blur(18px) brightness(0.9)' : 'none'; };
+
+el('btnChangePass').onclick = ()=>{
+  const cur = el('curPass').value, np = el('newPass').value, np2 = el('newPass2').value;
+  if(currentUser.password!==cur){ alert('Current password is wrong'); return; }
+  if(!np || np!==np2){ alert('New password mismatch'); return; }
+  currentUser.password = np; saveUser(currentUser);
+  el('curPass').value = el('newPass').value = el('newPass2').value = '';
+  alert('Password updated');
+};
+
+/* Weather */
+['setCity','setTemp','setCond'].forEach(id => el(id).oninput = ()=>{
+  currentUser.weather = { city:el('setCity').value.trim(), temp:el('setTemp').value.trim(), cond:el('setCond').value.trim() };
+  saveUser(currentUser); applyProfileToUI();
+});
+
+/* Settings tabs */
+document.querySelectorAll('#winSettings .sidebar .side-item').forEach(si=>{
+  si.onclick = ()=>{
+    document.querySelectorAll('#winSettings .side-item').forEach(x=>x.classList.remove('active'));
+    si.classList.add('active');
+    const which = si.dataset.s;
+    el('setProfile').classList.toggle('hidden', which!=='profile');
+    el('setAppearance').classList.toggle('hidden', which!=='appearance');
+    el('setSecurity').classList.toggle('hidden', which!=='security');
+    el('setWeather').classList.toggle('hidden', which!=='weather');
+  };
+});
+
+/* -------------------- Files: helpers -------------------- */
+function fileIconFor(name, type){
+  const ext = (name.split('.').pop()||'').toLowerCase();
+  if(type?.startsWith('image/')) return null; // use thumbnail
+  if(type?.startsWith('video/')) return '🎞️';
+  if(['pdf'].includes(ext)) return '📄';
+  if(['doc','docx','rtf','odt'].includes(ext)) return '📝';
+  if(['xls','xlsx','csv'].includes(ext)) return '📊';
+  if(['ppt','pptx'].includes(ext)) return '📈';
+  return '📁';
+}
+function fileToDataURL(file, cb){
+  const rd = new FileReader(); rd.onload = ()=> cb(rd.result); rd.readAsDataURL(file);
+}
+function pathJoin(base, name){
+  if(base==='/') return '/'+name;
+  return base + '/' + name;
+}
+function parentPath(p){
+  if(p==='/') return null;
+  const parts=p.split('/'); parts.pop(); const par=parts.join(''); return par===''?'/':par;
+}
+
+function refreshFolderSelect(){
+  const u=currentUser; const sel = el('folderSelect');
+  sel.innerHTML='';
+  Object.keys(u.fs.folders).forEach(path=>{
+    const opt=document.createElement('option'); opt.value=path; opt.textContent=path; if(path===cwd) opt.selected=true; sel.appendChild(opt);
+  });
+}
+el('folderSelect').onchange = ()=>{ cwd = el('folderSelect').value; refreshFiles(); }
+
+el('btnGoParent').onclick = ()=>{ const p=parentPath(cwd); if(p){ cwd=p; refreshFiles(); } };
+
+/* Create folder */
+el('btnCreateFolder').onclick = ()=>{
+  const name = prompt('Folder name?'); if(!name) return;
+  const path = pathJoin(cwd, name);
+  if(currentUser.fs.folders[path]){ alert('Folder exists'); return; }
+  currentUser.fs.folders[path] = { name, parent: cwd, children:[], tag:'primary' };
+  currentUser.fs.folders[cwd].children.push(path);
+  saveUser(currentUser); refreshFiles();
+};
+
+/* Upload via picker */
+el('fileInput').onchange = (e)=> handleFilesUpload([...e.target.files]);
+
+/* Drag & Drop */
+const dz = el('dropzone');
+;['dragenter','dragover'].forEach(ev=> dz.addEventListener(ev, e=>{ e.preventDefault(); dz.style.background='rgba(255,255,255,.12)'; }));
+;['dragleave','drop'].forEach(ev=> dz.addEventListener(ev, e=>{ e.preventDefault(); dz.style.background='transparent'; }));
+dz.addEventListener('drop', e=>{
+  const files = [...e.dataTransfer.files]; handleFilesUpload(files);
+});
+
+function handleFilesUpload(files){
+  // Storage limit check
+  const limitBytes = (currentUser.limitMB||1024)*1024*1024/1024/1024*1024*1024; // (kept readable)
+  let used = 0; Object.values(currentUser.fs.files).forEach(f=> used += f.size||0);
+  for(const f of files){
+    used += f.size;
+    if(used > (currentUser.limitMB*1024*1024)){ alert('Storage limit exceeded for user'); break; }
+    const id = 'f_'+Math.random().toString(36).slice(2);
+    fileToDataURL(f, url=>{
+      currentUser.fs.files[id] = { id, name:f.name, type:f.type, size:f.size, data:url, folder:cwd, tag:'primary', ts: now() };
+      saveUser(currentUser); refreshFiles();
+    });
+  }
+}
+
+/* Filter sidebar */
+document.querySelectorAll('#winFiles .sidebar .side-item').forEach(si=>{
+  si.onclick = ()=>{
+    document.querySelectorAll('#winFiles .side-item').forEach(x=>x.classList.remove('active'));
+    si.classList.add('active');
+    refreshFiles();
+  };
+});
+
+/* Context menu */
+const ctx = el('ctx');
+document.body.addEventListener('click', ()=> ctx.style.display='none');
+
+ctx.addEventListener('click', (e)=>{
+  const act = e.target.dataset.act;
+  if(!lastRightClick) return;
+  const { id, type } = lastRightClick;
+  if(type==='file'){
+    const f=currentUser.fs.files[id];
+    if(!f) return;
+    if(act==='rename'){ inlineRename(id); }
+    if(act==='download'){ downloadFile(f); }
+    if(act==='movePrimary'){ f.tag='primary'; saveUser(currentUser); refreshFiles(); }
+    if(act==='moveArchive'){ f.tag='archive'; saveUser(currentUser); refreshFiles(); }
+    if(act==='delete'){ delete currentUser.fs.files[id]; saveUser(currentUser); refreshFiles(); }
+  }else if(type==='folder'){
+    const path=id;
+    if(act==='rename'){ inlineRenameFolder(path); }
+    if(act==='delete'){ if(path==='/'||path==='/Photos'||path==='/Docs'){ alert('Cannot delete root'); } else { deleteFolderRecursive(path); refreshFiles(); } }
+  }
+  ctx.style.display='none';
+});
+
+function deleteFolderRecursive(path){
+  const folder = currentUser.fs.folders[path]; if(!folder) return;
+  // Move/Remove children
+  (folder.children||[]).forEach(ch=> deleteFolderRecursive(ch));
+  // Remove files in this folder
+  Object.values(currentUser.fs.files).forEach(f=>{ if(f.folder===path) delete currentUser.fs.files[f.id]; });
+  // Remove from parent list
+  if(folder.parent && currentUser.fs.folders[folder.parent]){
+    currentUser.fs.folders[folder.parent].children = (currentUser.fs.folders[folder.parent].children||[]).filter(p=>p!==path);
+  }
+  delete currentUser.fs.folders[path];
+  saveUser(currentUser);
+  cwd = '/';
+}
+
+/* Clear all */
+el('btnClear').onclick = ()=>{
+  if(!confirm('Delete ALL your files (this user only)?')) return;
+  currentUser.fs.files = {};
+  saveUser(currentUser); refreshFiles();
+};
+
+/* File grid renderer */
+function refreshFiles(){
+  if(!currentUser) return;
+  const grid = el('fileGrid'); grid.innerHTML='';
+  const filterActive = document.querySelector('#winFiles .sidebar .side-item.active')?.dataset.filter || 'all';
+
+  // Breadcrumb/current folder
+  el('cwd').textContent = cwd;
+  refreshFolderSelect();
+
+  // Show folders in cwd
+  const children = currentUser.fs.folders[cwd]?.children || [];
+  for(const path of children){
+    const fd = currentUser.fs.folders[path];
+    if(filterActive==='folders' || filterActive==='all'){
+      const row = document.createElement('div');
+      row.className = 'file folder';
+      row.innerHTML = `<div class="thumb" style="display:grid;place-items:center;font-size:24px">📁</div>
+        <div style="flex:1">
+          <div class="fname" data-folder="${path}" contenteditable="false">${fd.name}</div>
+          <div class="meta">${path}</div>
+        </div>
+        <button class="pill" data-open="${path}">Open</button>`;
+      grid.appendChild(row);
+
+      // Open folder
+      row.querySelector('[data-open]').onclick = ()=>{ cwd = path; refreshFiles(); };
+      // Right click
+      row.oncontextmenu = (e)=>{ e.preventDefault(); lastRightClick={id:path,type:'folder'}; showCtx(e.clientX, e.clientY, true); };
+      // Double click rename
+      row.querySelector('.fname').ondblclick = ()=> inlineRenameFolder(path);
+    }
+  }
+
+  // Files in cwd
+  const files = Object.values(currentUser.fs.files).filter(f=> f.folder===cwd && (filterActive==='all' || f.tag===filterActive));
+  for(const f of files){
+    const row = document.createElement('div'); row.className='file';
+    const isImg = f.type?.startsWith('image/');
+    const icon = fileIconFor(f.name, f.type);
+    row.innerHTML = `
+      ${isImg ? `<img class="thumb" src="${f.data}">` : `<div class="thumb" style="display:grid;place-items:center;font-size:24px">${icon||'📄'}</div>`}
+      <div style="flex:1">
+        <div class="fname" data-file="${f.id}" contenteditable="false">${f.name}</div>
+        <div class="meta">${fmtBytes(f.size)} • ${new Date(f.ts||now()).toLocaleString()}</div>
+      </div>
+      <button class="pill" data-dl="${f.id}">Download</button>
+      <button class="pill danger" data-del="${f.id}">Delete</button>
+    `;
+    grid.appendChild(row);
+
+    row.querySelector('[data-dl]').onclick = ()=> downloadFile(currentUser.fs.files[f.id]);
+    row.querySelector('[data-del]').onclick = ()=>{ delete currentUser.fs.files[f.id]; saveUser(currentUser); refreshFiles(); };
+
+    // Inline rename
+    row.querySelector('.fname').ondblclick = ()=> inlineRename(f.id);
+
+    // Right-click
+    row.oncontextmenu = (e)=>{ e.preventDefault(); lastRightClick={id:f.id,type:'file'}; showCtx(e.clientX, e.clientY); };
+  }
+  updateStats();
+}
+
+function inlineRename(fileId){
+  const elName = document.querySelector(`.fname[data-file="${fileId}"]`);
+  elName.contentEditable = 'true'; elName.focus();
+  const commit = ()=>{
+    elName.contentEditable='false';
+    const v = elName.textContent.trim(); if(!v) return;
+    currentUser.fs.files[fileId].name = v; saveUser(currentUser); refreshFiles();
+  };
+  elName.onblur = commit;
+  elName.onkeydown = (e)=>{ if(e.key==='Enter'){ e.preventDefault(); elName.blur(); } };
+}
+function inlineRenameFolder(path){
+  const elName = document.querySelector(`.fname[data-folder="${path}"]`);
+  elName.contentEditable = 'true'; elName.focus();
+  elName.onkeydown = (e)=>{ if(e.key==='Enter'){ e.preventDefault(); elName.blur(); } };
+  elName.onblur = ()=>{
+    elName.contentEditable='false';
+    const v = elName.textContent.trim(); if(!v) return;
+    currentUser.fs.folders[path].name = v; saveUser(currentUser); refreshFiles();
+  };
+}
+
+function showCtx(x,y, isFolder=false){
+  ctx.style.left = x+'px'; ctx.style.top = y+'px'; ctx.style.display='block';
+  // Hide download for folder
+  ctx.querySelector('[data-act="download"]').style.display = isFolder ? 'none' : 'block';
+  ctx.querySelector('[data-act="movePrimary"]').style.display = isFolder ? 'none' : 'block';
+  ctx.querySelector('[data-act="moveArchive"]').style.display = isFolder ? 'none' : 'block';
+}
+
+function downloadFile(f){
+  const a=document.createElement('a'); a.href=f.data; a.download=f.name; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* -------------------- Reports -------------------- */
+document.querySelectorAll('#winReports .sidebar .side-item').forEach(si=>{
+  si.onclick = ()=>{
+    document.querySelectorAll('#winReports .side-item').forEach(x=>x.classList.remove('active'));
+    si.classList.add('active');
+    const view = si.dataset.rview;
+    el('userReport').classList.toggle('hidden', view!=='user');
+    el('adminReport').classList.toggle('hidden', view!=='admin');
+  };
+});
+
+function refreshReports(){
+  if(!currentUser) return;
+  // User report
+  let ufiles = 0, usize=0;
+  Object.values(currentUser.fs.files).forEach(f=>{ ufiles++; usize+=f.size||0; });
+  el('r_user_files').textContent = ufiles;
+  el('r_user_storage').textContent = fmtBytes(usize);
+  const durMin = Math.max(0, Math.round((now()-sessionStart)/60000));
+  el('r_user_duration').textContent = durMin+'m';
+
+  // Admin report
+  if(currentUser.role==='admin'){
+    const users = getUsers();
+    let totalUsers=0, tfiles=0, tsize=0, tdur=0;
+    Object.values(users).forEach(u=>{
+      if(!u.fs) return;
+      totalUsers++;
+      Object.values(u.fs.files).forEach(f=>{ tfiles++; tsize += f.size||0; });
+      const s = LS.get(KEY_SESSION,null);
+      if(s && s.username===u.username) tdur += Math.max(0, (now()-s.loginAt));
+    });
+    el('r_admin_users').textContent = totalUsers;
+    el('r_admin_files').textContent = tfiles;
+    el('r_admin_storage').textContent = fmtBytes(tsize);
+    el('r_admin_duration').textContent = Math.round(tdur/60000)+'m';
+  }
+}
+
+/* -------------------- Management (Admin) -------------------- */
+let mgmtSelected = null;
+function refreshMgmt(){
+  if(!currentUser || currentUser.role!=='admin') return;
+  const tbody = el('mgmtTable').querySelector('tbody'); tbody.innerHTML='';
+  const users = getUsers();
+  Object.values(users).forEach(u=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u.username}</td>
+      <td>${u.email||'—'}</td>
+      <td><input type="checkbox" ${u.restricted?'checked':''} data-u="${u.username}" data-k="restricted"></td>
+      <td><input type="number" class="input" style="max-width:120px" value="${u.limitMB||1024}" data-u="${u.username}" data-k="limitMB"></td>
+      <td>
+        <button class="btn danger" data-del="${u.username}">Delete</button>
+        <button class="btn alt" data-sel="${u.username}">Select</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Bind changes
+  tbody.querySelectorAll('input[type="checkbox"], input[type="number"]').forEach(inp=>{
+    inp.onchange = ()=>{
+      const uname = inp.dataset.u; const k = inp.dataset.k;
+      const users = getUsers(); if(!users[uname]) return;
+      users[uname][k] = (inp.type==='checkbox') ? inp.checked : Number(inp.value||0);
+      LS.set(KEY_USERS, users);
+      if(currentUser.username===uname){ currentUser = users[uname]; } // reflect self changes
+    };
+  });
+  tbody.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const uname = btn.dataset.del;
+      if(uname===ADMIN.username){ alert('Cannot delete admin'); return; }
+      const users = getUsers(); delete users[uname]; LS.set(KEY_USERS, users);
+      refreshMgmt();
+    };
+  });
+  tbody.querySelectorAll('[data-sel]').forEach(btn=>{
+    btn.onclick = ()=> { mgmtSelected = btn.dataset.sel; alert('Selected user: '+mgmtSelected); };
+  });
+
+  // Background & avatar override
+  el('mgmtBg').onchange = (e)=>{
+    if(!mgmtSelected){ alert('Select a user row first'); e.target.value=''; return; }
+    fileToDataURL(e.target.files[0], url=>{
+      const users=getUsers(); users[mgmtSelected].bg=url; LS.set(KEY_USERS, users);
+      if(currentUser.username===mgmtSelected) applyBackground(url);
+      alert('Background updated for '+mgmtSelected);
+      e.target.value='';
+    });
+  };
+  el('mgmtAvatar').onchange = (e)=>{
+    if(!mgmtSelected){ alert('Select a user row first'); e.target.value=''; return; }
+    fileToDataURL(e.target.files[0], url=>{
+      const users=getUsers(); users[mgmtSelected].avatar=url; LS.set(KEY_USERS, users);
+      alert('Profile picture updated for '+mgmtSelected);
+      e.target.value='';
+    });
+  };
+}
+
+/* -------------------- Reports/Windows default -------------------- */
+function boot(){
+  // Try resume session
+  const s = LS.get(KEY_SESSION,null);
+  if(s){
+    const users=getUsers();
+    if(users[s.username] && !users[s.username].restricted){
+      currentUser = users[s.username]; initFS(currentUser);
+      sessionStart = s.loginAt||now();
+      el('loginWrap').classList.add('hidden');
+      renderByRole(); applyProfileToUI(); openWin('winHome');
+      return;
+    }
+  }
+  // show login
+  el('loginWrap').classList.remove('hidden');
+  hideAllWindows();
+  setDefaultBackground();
+}
+boot();
+
+</script>
 </body>
 </html>
