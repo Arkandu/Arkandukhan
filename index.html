@@ -6,144 +6,136 @@
   <title>Login Page</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: url("https://picsum.photos/1600/900?blur=5") no-repeat center center/cover;
+      font-family: "Segoe UI", sans-serif;
+      background: url("https://picsum.photos/1920/1080?blur=3") no-repeat center center/cover;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
     }
+
     .container {
-      background: rgba(22, 27, 34, 0.6);
-      backdrop-filter: blur(12px);
-      padding: 30px;
-      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 40px;
       width: 350px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.5);
-      color: #fff;
+      color: white;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     }
+
     h2 {
       text-align: center;
       margin-bottom: 20px;
     }
-    input, button {
+
+    input {
       width: 100%;
       padding: 12px;
-      margin: 8px 0;
+      margin: 10px 0;
       border: none;
-      border-radius: 6px;
-      font-size: 15px;
+      border-radius: 8px;
+      outline: none;
     }
-    input {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    input::placeholder {
-      color: #ddd;
-    }
+
     button {
+      width: 100%;
+      padding: 12px;
       background: #238636;
       color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
       cursor: pointer;
       font-weight: bold;
     }
+
     button:hover {
       background: #2ea043;
     }
+
     .link {
+      margin-top: 15px;
       text-align: center;
-      margin-top: 10px;
     }
-    a {
+
+    .link a {
       color: #58a6ff;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    .hidden {
-      display: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 id="form-title">Login</h2>
-
-    <!-- Login Form -->
-    <div id="login-form">
-      <input type="text" id="login-username" placeholder="Username">
-      <input type="password" id="login-password" placeholder="Password">
-      <button onclick="login()">Login</button>
-      <div class="link">
-        <a href="#" onclick="showRegister()">New user? Register</a>
-      </div>
+  <div class="container" id="login-container">
+    <h2>Login</h2>
+    <input type="text" id="login-username" placeholder="Username / Admin ID">
+    <input type="password" id="login-password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div class="link">
+      <a onclick="showRegister()">Register</a>
     </div>
+  </div>
 
-    <!-- Register Form -->
-    <div id="register-form" class="hidden">
-      <input type="text" id="register-username" placeholder="Choose Username">
-      <input type="password" id="register-password" placeholder="Choose Password">
-      <button onclick="register()">Register</button>
-      <div class="link">
-        <a href="#" onclick="showLogin()">Already have account? Login</a>
-      </div>
+  <div class="container" id="register-container" style="display:none;">
+    <h2>Register</h2>
+    <input type="text" id="register-username" placeholder="New Username">
+    <input type="password" id="register-password" placeholder="New Password">
+    <button onclick="register()">Register</button>
+    <div class="link">
+      <a onclick="showLogin()">Back to Login</a>
     </div>
   </div>
 
   <script>
-    let users = JSON.parse(localStorage.getItem("users")) || {};
+    function showRegister() {
+      document.getElementById("login-container").style.display = "none";
+      document.getElementById("register-container").style.display = "block";
+    }
+
+    function showLogin() {
+      document.getElementById("register-container").style.display = "none";
+      document.getElementById("login-container").style.display = "block";
+    }
+
+    function register() {
+      let username = document.getElementById("register-username").value.trim();
+      let password = document.getElementById("register-password").value.trim();
+
+      if (username && password) {
+        let users = JSON.parse(localStorage.getItem("users")) || {};
+        if (users[username]) {
+          alert("⚠️ Username already exists!");
+        } else {
+          users[username] = password;
+          localStorage.setItem("users", JSON.stringify(users));
+          alert("✅ Registration successful! Please login.");
+          showLogin();
+        }
+      } else {
+        alert("⚠️ Please enter a username and password.");
+      }
+    }
 
     function login() {
-      const username = document.getElementById("login-username").value.trim();
-      const password = document.getElementById("login-password").value.trim();
+      let username = document.getElementById("login-username").value.trim();
+      let password = document.getElementById("login-password").value.trim();
 
+      // Check for admin login
       if (username === "arkandu.khan" && password === "Arkandu@1998") {
         localStorage.setItem("loggedInUser", "Admin Arkandu");
         window.location.href = "home.html";
         return;
       }
 
+      // Check for normal user
+      let users = JSON.parse(localStorage.getItem("users")) || {};
       if (users[username] && users[username] === password) {
         localStorage.setItem("loggedInUser", username);
         window.location.href = "home.html";
       } else {
-        alert("Invalid username or password!");
+        alert("❌ Invalid credentials!");
       }
-    }
-
-    function register() {
-      const username = document.getElementById("register-username").value.trim();
-      const password = document.getElementById("register-password").value.trim();
-
-      if (username === "" || password === "") {
-        alert("Please enter both fields.");
-        return;
-      }
-
-      if (users[username]) {
-        alert("User already exists!");
-        return;
-      }
-
-      users[username] = password;
-      localStorage.setItem("users", JSON.stringify(users));
-      alert("User registered successfully! Please login.");
-      showLogin();
-    }
-
-    function showRegister() {
-      document.getElementById("login-form").classList.add("hidden");
-      document.getElementById("register-form").classList.remove("hidden");
-      document.getElementById("form-title").innerText = "Register";
-    }
-
-    function showLogin() {
-      document.getElementById("register-form").classList.add("hidden");
-      document.getElementById("login-form").classList.remove("hidden");
-      document.getElementById("form-title").innerText = "Login";
     }
   </script>
 </body>
