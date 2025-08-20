@@ -104,39 +104,7 @@
     <h1 id="welcome"></h1>
   </header>
 
-  <div class="grid">
-    <!-- Facebook Card -->
-    <div class="card">
-      <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" alt="Facebook">
-      <h2>Facebook</h2>
-      <p>Connect with friends and the world around you.</p>
-      <a href="https://www.facebook.com" target="_blank">Open</a>
-    </div>
-
-    <!-- Instagram Card -->
-    <div class="card">
-      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram">
-      <h2>Instagram</h2>
-      <p>Share your moments and explore the world visually.</p>
-      <a href="https://www.instagram.com" target="_blank">Open</a>
-    </div>
-
-    <!-- Settings Card -->
-    <div class="card">
-      <img src="https://cdn-icons-png.flaticon.com/512/3524/3524659.png" alt="Settings">
-      <h2>Settings</h2>
-      <p>Manage your account preferences and security.</p>
-      <button onclick="openSettings()">Open</button>
-    </div>
-
-    <!-- Profile Card -->
-    <div class="card">
-      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Profile">
-      <h2>Profile</h2>
-      <p id="profile-info">User details will appear here.</p>
-      <button onclick="showProfile()">View</button>
-    </div>
-  </div>
+  <div class="grid" id="dashboard"></div>
 
   <button class="logout" onclick="logout()">Logout</button>
 
@@ -146,20 +114,79 @@
       window.location.href = "index.html";
     } else {
       document.getElementById("welcome").innerText = "👋 Welcome, " + user + "!";
-      document.getElementById("profile-info").innerText = "Logged in as: " + user;
+    }
+
+    const dashboard = document.getElementById("dashboard");
+
+    // Common features
+    const features = [
+      {
+        name: "Facebook",
+        img: "https://cdn-icons-png.flaticon.com/512/5968/5968764.png",
+        desc: "Connect with friends and the world around you.",
+        link: "https://www.facebook.com"
+      },
+      {
+        name: "Instagram",
+        img: "https://cdn-icons-png.flaticon.com/512/2111/2111463.png",
+        desc: "Share your moments and explore the world visually.",
+        link: "https://www.instagram.com"
+      },
+      {
+        name: "Profile",
+        img: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
+        desc: "View your account details.",
+        action: () => alert("👤 Profile: " + user + "\nEmail: " + user + "@example.com")
+      },
+      {
+        name: "Settings",
+        img: "https://cdn-icons-png.flaticon.com/512/3524/3524659.png",
+        desc: "Manage your account preferences.",
+        action: () => alert("⚙️ Settings feature coming soon!")
+      }
+    ];
+
+    // Extra admin-only feature
+    const adminFeature = {
+      name: "Manage Users",
+      img: "https://cdn-icons-png.flaticon.com/512/1077/1077114.png",
+      desc: "Admin-only: Manage registered users.",
+      action: () => {
+        let users = JSON.parse(localStorage.getItem("users")) || {};
+        let userList = Object.keys(users).join(", ") || "No users registered yet.";
+        alert("👥 Registered Users: " + userList);
+      }
+    };
+
+    // Render cards
+    features.forEach(f => {
+      let card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${f.img}" alt="${f.name}">
+        <h2>${f.name}</h2>
+        <p>${f.desc}</p>
+        ${f.link ? `<a href="${f.link}" target="_blank">Open</a>` : `<button onclick="(${f.action})()">Open</button>`}
+      `;
+      dashboard.appendChild(card);
+    });
+
+    // If admin → add extra card
+    if (user === "Admin Arkandu") {
+      let card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${adminFeature.img}" alt="${adminFeature.name}">
+        <h2>${adminFeature.name}</h2>
+        <p>${adminFeature.desc}</p>
+        <button onclick="(${adminFeature.action})()">Open</button>
+      `;
+      dashboard.appendChild(card);
     }
 
     function logout() {
       localStorage.removeItem("loggedInUser");
       window.location.href = "index.html";
-    }
-
-    function openSettings() {
-      alert("⚙️ Settings feature coming soon!");
-    }
-
-    function showProfile() {
-      alert("👤 Profile: " + user + "\nEmail: " + user + "@example.com");
     }
   </script>
 </body>
