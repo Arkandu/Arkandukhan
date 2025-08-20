@@ -1,537 +1,81 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta name="color-scheme" content="dark light">
-<title>Vision Drive — Login + App</title>
-<style>
-  /* ---- Base ---- */
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#0b0b0f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  a{color:inherit}
-
-  /* ---- Background (gradient + photo fallback) ---- */
-  .background{
-    position:fixed;inset:0;z-index:0;
-    background:
-      radial-gradient(1200px 800px at 15% 10%, rgba(77,170,255,0.25), transparent 60%),
-      radial-gradient(1200px 800px at 85% 90%, rgba(255,120,200,0.2), transparent 60%),
-      linear-gradient(180deg, #0b0b12 0%, #0b0b0f 100%);
-  }
-  .bg-photo{
-    position:absolute;inset:0;opacity:.45;background-position:center;background-size:cover;filter:brightness(.9) saturate(110%) contrast(105%);
-    background-image:url('https://images.unsplash.com/photo-1527443154391-507e9dc6c5cc?q=80&w=1920&auto=format&fit=crop');
-  }
-
-  /* ---- Glass card/window ---- */
-  .glass{
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.14);
-    backdrop-filter:blur(22px) saturate(160%);
-    -webkit-backdrop-filter:blur(22px) saturate(160%);
-    box-shadow:0 18px 60px rgba(0,0,0,0.45);
-  }
-
-  /* ---- Login ---- */
-  .login-wrap{
-    position:relative;z-index:2;min-height:100%;display:grid;place-items:center;padding:40px 16px;
-  }
-  .login-card{
-    width:100%;max-width:440px;border-radius:18px;padding:22px;
-  }
-  .tabs{display:flex;gap:8px;margin-bottom:12px}
-  .tab{flex:1;text-align:center;padding:10px;border-radius:12px;cursor:pointer;background:rgba(255,255,255,0.06)}
-  .tab.active{background:rgba(255,255,255,0.12);font-weight:600}
-  .field{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-  .field input{padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.06);color:#fff}
-  .btn{margin-top:14px;width:100%;padding:10px;border-radius:12px;border:none;cursor:pointer;background:rgba(0,122,255,.85);color:#fff;font-weight:600}
-  .hint{opacity:.85;font-size:12px;margin-top:8px}
-
-  /* ---- App Shell ---- */
-  .app{position:relative;z-index:2;min-height:100vh;display:none;padding-bottom:160px}
-  .topbar{margin:18px auto;width:min(1200px,calc(100% - 40px));display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-radius:16px}
-  .topbar .title{font-weight:700;font-size:18px;letter-spacing:.2px}
-  .topbar .right{display:flex;gap:10px;align-items:center}
-  .chip{padding:6px 10px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12)}
-  .btn-ghost{background:rgba(255,255,255,0.08);color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer}
-
-  /* ---- Windows ---- */
-  .window{display:none;position:absolute;top:110px;left:50%;transform:translateX(-50%);width:min(960px,calc(100% - 40px));max-height:calc(100vh - 220px);overflow:auto;padding:18px 20px;border-radius:16px}
-  .window .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;user-select:none;cursor:grab}
-  .window h2{font-size:20px}
-  .filter-bar{display:flex;gap:10px;align-items:center;margin:6px 0 12px}
-  input,select,textarea,button{font:inherit}
-  .small-btn{padding:8px 10px;border-radius:10px;border:none;background:rgba(0,122,255,.9);color:#fff;cursor:pointer}
-
-  /* ---- Home ---- */
-  .profile-card{display:flex;gap:18px;align-items:center;padding:14px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)}
-  .avatar{width:80px;height:80px;border-radius:16px;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,0.08)}
-  .avatar img{width:100%;height:100%;object-fit:cover}
-  .profile-info{display:flex;flex-direction:column;gap:4px}
-  .profile-info .name{font-size:18px;font-weight:700}
-
-  /* ---- Docs ---- */
-  #docList{list-style:none;display:flex;flex-direction:column;gap:8px}
-  .doc-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)}
-  .doc-icon{width:56px;height:56px;border-radius:10px;display:grid;place-items:center;font-size:24px;background:rgba(0,0,0,0.22)}
-  .doc-meta{flex:1;display:flex;flex-direction:column;gap:6px}
-  .doc-meta .title{font-weight:600;line-height:1.2}
-  .doc-meta .sub{opacity:.9;font-size:13px}
-  .tag{display:inline-block;background:rgba(0,0,0,0.22);padding:3px 8px;border-radius:8px;font-size:12px;margin-right:6px}
-
-  /* ---- Photos ---- */
-  .photo-gallery{display:flex;flex-wrap:wrap;gap:10px}
-  .photo-card{width:140px;height:104px;border-radius:12px;overflow:hidden;position:relative;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08)}
-  .photo-card img{width:100%;height:100%;object-fit:cover;display:block}
-  .photo-overlay{position:absolute;left:0;right:0;bottom:0;padding:6px;font-size:12px;background:linear-gradient(transparent, rgba(0,0,0,0.65));display:flex;justify-content:space-between}
-
-  /* ---- Dock ---- */
-  .dock{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:none;gap:18px;padding:10px 18px;border-radius:26px;z-index:5}
-  .dock .dock-item{font-size:28px;padding:6px;cursor:pointer;transition:transform .15s ease}
-  .dock .dock-item:hover{transform:translateY(-8px) scale(1.18)}
-
-  /* ---- Context menu ---- */
-  .context-menu{position:absolute;min-width:220px;border-radius:10px;padding:8px;z-index:30}
-  .context-menu .row{display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;cursor:pointer}
-  .context-menu .row:hover{background:rgba(255,255,255,0.06)}
-  .context-menu input,.context-menu select{width:100%}
-
-  /* ---- Viewer ---- */
-  .viewer{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);z-index:25}
-  .viewer .inner{width:min(960px,86vw);background:#fff;border-radius:12px;padding:10px}
-  .viewer .inner iframe{width:100%;height:70vh;border:0}
-
-  /* ---- Utils ---- */
-  .hidden{display:none !important}
-  .drop-target{outline:3px dashed rgba(255,255,255,0.22);outline-offset:6px}
-
-  /* apply glass to key shells */
-  .topbar,.window,.dock,.context-menu,.login-card{ composes: glass; } /* (visual hint only) */
-</style>
+  <meta charset="UTF-8">
+  <title>Vision Pro File Manager</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Background -->
-  <div class="background">
-    <div class="bg-photo" aria-hidden="true"></div>
+  <div class="background"></div>
+
+  <!-- Login Screen -->
+  <div id="loginScreen" class="window" style="display:block;">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
   </div>
 
-  <!-- LOGIN -->
-  <div id="loginWrap" class="login-wrap">
-    <div class="login-card glass">
-      <div class="tabs">
-        <div id="tabLogin" class="tab active">Login</div>
-        <div id="tabRegister" class="tab">Register</div>
-      </div>
-
-      <!-- Login form -->
-      <div id="loginForm">
-        <div class="field">
-          <label>Username</label>
-          <input id="loginUser" placeholder="e.g. arkandu.khan" autocomplete="username">
-        </div>
-        <div class="field">
-          <label>Password</label>
-          <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <button class="btn" id="loginBtn">Sign in</button>
-        <div class="hint">Admin: <b>arkandu.khan</b> / <b>Arkandu@1998</b></div>
-      </div>
-
-      <!-- Register form -->
-      <div id="registerForm" class="hidden">
-        <div class="field"><label>Username</label><input id="regUser" placeholder="choose a username"></div>
-        <div class="field"><label>Password</label><input id="regPass" type="password" placeholder="create a password"></div>
-        <div class="field"><label>Display name</label><input id="regName" placeholder="Your name"></div>
-        <div class="field"><label>Email</label><input id="regEmail" placeholder="you@example.com"></div>
-        <button class="btn" id="registerBtn">Create account</button>
-        <div class="hint">For demo only — credentials are stored locally in your browser.</div>
-      </div>
+  <!-- Home Window -->
+  <div id="homeWindow" class="window">
+    <h2>🏠 Home</h2>
+    <div id="profileDetails">
+      <p><strong>Name:</strong> <span id="profileName">User</span></p>
+      <p><strong>Email:</strong> <span id="profileEmail">user@example.com</span></p>
     </div>
   </div>
 
-  <!-- APP -->
-  <div id="app" class="app">
-    <div class="topbar glass">
-      <div class="title">🍏 Vision Drive</div>
-      <div class="right">
-        <span id="who" class="chip">—</span>
-        <button id="logoutBtn" class="btn-ghost">Logout</button>
-      </div>
-    </div>
-
-    <!-- Windows -->
-    <div id="home" class="window glass">
-      <div class="h"><h2>🏠 Home — Profile</h2><div class="drag-hint">Drag</div></div>
-      <div class="profile-card">
-        <div class="avatar"><img id="homeAvatar" src="https://i.pravatar.cc/120" alt="avatar"></div>
-        <div class="profile-info">
-          <div class="name" id="homeName">Name</div>
-          <div class="meta" id="homeUsername">@username</div>
-          <div class="meta" id="homeEmail">email@example.com</div>
-          <div class="meta" id="homeJoined">Joined: —</div>
-        </div>
-        <div style="margin-left:auto;text-align:right">
-          <div style="font-size:14px;opacity:0.9">Docs: <span id="homeDocs">0</span></div>
-          <div style="font-size:14px;opacity:0.9">Photos: <span id="homePhotos">0</span></div>
-        </div>
-      </div>
-      <div style="margin-top:14px">
-        <h3>About</h3>
-        <p id="homeAbout" style="opacity:0.9">Use Settings to edit profile info.</p>
-      </div>
-    </div>
-
-    <div id="documents" class="window glass">
-      <div class="h"><h2>📂 Documents</h2><div class="drag-hint">Drag</div></div>
-      <div class="filter-bar">
-        <input id="docInput" type="file" multiple hidden>
-        <button class="small-btn" id="docPick">Select Documents</button>
-        <select id="docFilter"><option>All</option><option>Primary</option><option>Archive</option></select>
-        <button class="small-btn" id="clearDocs">Clear All</button>
-        <div style="margin-left:auto;font-size:13px;opacity:.9">Drag files onto this window</div>
-      </div>
-      <ul id="docList"></ul>
-    </div>
-
-    <div id="photos" class="window glass">
-      <div class="h"><h2>🖼️ Photos</h2><div class="drag-hint">Drag</div></div>
-      <div class="filter-bar">
-        <input id="photoInput" type="file" accept="image/*" multiple hidden>
-        <button class="small-btn" id="photoPick">Select Photos</button>
-        <select id="photoFilter"><option>All</option><option>Primary</option><option>Archive</option></select>
-        <button class="small-btn" id="clearPhotos">Clear All</button>
-        <div style="margin-left:auto;font-size:13px;opacity:.9">Drag images onto this window</div>
-      </div>
-      <div id="photoGallery" class="photo-gallery"></div>
-    </div>
-
-    <div id="settings" class="window glass">
-      <div class="h"><h2>⚙️ Settings</h2><div class="drag-hint">Drag</div></div>
-      <label>Display name</label><input id="setName" placeholder="Your name">
-      <div style="height:8px"></div>
-      <label>Email</label><input id="setEmail" placeholder="you@example.com">
-      <div style="height:8px"></div>
-      <label>About</label><textarea id="setAbout" rows="3" placeholder="Short bio"></textarea>
-      <div style="height:8px"></div>
-      <label>Change password</label><input id="setPass" type="password" placeholder="new password (optional)">
-      <div style="height:12px"></div>
-      <button id="saveSettings" class="small-btn">Save</button>
-    </div>
-
-    <div id="reports" class="window glass">
-      <div class="h"><h2>📊 Reports</h2><div class="drag-hint">Drag</div></div>
-      <p>Total logins: <span id="rpLogins">0</span></p>
-      <p>Documents uploaded: <span id="rpDocs">0</span></p>
-      <p>Photos uploaded: <span id="rpPhotos">0</span></p>
-      <canvas id="rpChart" width="640" height="220" style="margin-top:12px;background:rgba(255,255,255,0.86);border-radius:10px"></canvas>
-    </div>
-
-    <div id="users" class="window glass">
-      <div class="h"><h2>👥 User Management</h2><div class="drag-hint">Drag</div></div>
-      <p>Visible to admin only.</p>
-      <ul id="userList"></ul>
-    </div>
-
-    <!-- Context menu -->
-    <div id="ctx" class="context-menu glass hidden" role="menu"></div>
-
-    <!-- Viewer -->
-    <div id="viewer" class="viewer" aria-hidden="true">
-      <div class="inner">
-        <button id="viewerClose" class="small-btn" style="float:right">Close</button>
-        <iframe id="viewerFrame"></iframe>
-      </div>
-    </div>
-
-    <!-- Dock -->
-    <div id="dock" class="dock glass">
-      <div class="dock-item" onclick="openWin('home')" title="Home">🏠</div>
-      <div class="dock-item" onclick="openWin('documents')" title="Documents">📂</div>
-      <div class="dock-item" onclick="openWin('photos')" title="Photos">🖼️</div>
-      <div class="dock-item" onclick="openWin('settings')" title="Settings">⚙️</div>
-      <div class="dock-item" onclick="openWin('reports')" title="Reports">📊</div>
-      <div id="dockUsers" class="dock-item" onclick="openWin('users')" title="User Management">👥</div>
-    </div>
+  <!-- Documents -->
+  <div id="docsWindow" class="window">
+    <h2>📂 Documents</h2>
+    <div class="upload-box" onclick="document.getElementById('docUpload').click()">Upload Documents</div>
+    <input type="file" id="docUpload" multiple hidden onchange="handleFileUpload(event,'doc')">
+    <ul id="docList"></ul>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-/*** Minimal SPA so login always works (no redirects, no external files) ***/
+  <!-- Photos -->
+  <div id="photosWindow" class="window">
+    <h2>🖼️ Photos</h2>
+    <div class="upload-box" onclick="document.getElementById('photoUpload').click()">Upload Photos</div>
+    <input type="file" id="photoUpload" multiple hidden accept="image/*" onchange="handleFileUpload(event,'photo')">
+    <div id="photoGallery"></div>
+  </div>
 
-/* -------- IndexedDB -------- */
-const DB_NAME='visionDriveDB_v6'; const DB_VERSION=1; let db=null;
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);
-r.onupgradeneeded=()=>{db=r.result;
- if(!db.objectStoreNames.contains('users')) db.createObjectStore('users',{keyPath:'username'});
- if(!db.objectStoreNames.contains('docs')) db.createObjectStore('docs',{keyPath:'id',autoIncrement:true});
- if(!db.objectStoreNames.contains('photos')) db.createObjectStore('photos',{keyPath:'id',autoIncrement:true});
-};
-r.onsuccess=()=>{db=r.result;res(db)}; r.onerror=()=>rej(r.error);});}
-const tx=(s,m)=>db.transaction(s,m).objectStore(s);
-const add=(s,v)=>new Promise((res,rej)=>{const rq=tx(s,'readwrite').add(v); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);});
-const put=(s,v)=>new Promise((res,rej)=>{const rq=tx(s,'readwrite').put(v); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);});
-const get=(s,k)=>new Promise((res,rej)=>{const rq=tx(s,'readonly').get(k); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);});
-const all=(s)=>new Promise((res,rej)=>{const rq=tx(s,'readonly').getAll(); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);});
-const del=(s,k)=>new Promise((res,rej)=>{const rq=tx(s,'readwrite').delete(k); rq.onsuccess=()=>res(); rq.onerror=()=>rej(rq.error);});
-const clear=(s)=>new Promise((res,rej)=>{const rq=tx(s,'readwrite').clear(); rq.onsuccess=()=>res(); rq.onerror=()=>rej(rq.error);});
+  <!-- Reports -->
+  <div id="reportsWindow" class="window">
+    <h2>📊 Reports</h2>
+    <p>Total logins: <span id="loginCount">0</span></p>
+    <p>Files uploaded: <span id="fileCount">0</span></p>
+  </div>
 
-/* -------- State -------- */
-let currentUser=null; let isAdmin=false; let usageChart=null;
+  <!-- Settings -->
+  <div id="settingsWindow" class="window">
+    <h2>⚙️ Settings</h2>
+    <label>Name: <input type="text" id="settingsName"></label><br>
+    <label>Email: <input type="email" id="settingsEmail"></label><br>
+    <button onclick="saveSettings()">Save</button>
+  </div>
 
-/* -------- Helpers -------- */
-const $=sel=>document.querySelector(sel);
-const fmtSize=b=>b<1024?b+' B':(b<1048576? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(2)+' MB');
-const fmtDate=ts=>new Date(ts).toLocaleString();
+  <!-- User Management (Admin Only) -->
+  <div id="usersWindow" class="window">
+    <h2>👥 User Management</h2>
+    <ul id="userList"></ul>
+  </div>
 
-/* -------- Login / Register -------- */
-const loginWrap=$('#loginWrap'); const app=$('#app'); const who=$('#who'); const dock=$('#dock'); const dockUsers=$('#dockUsers');
-function showLogin(){loginWrap.style.display='grid'; app.style.display='none';}
-function showApp(){loginWrap.style.display='none'; app.style.display='block'; dock.style.display='flex'; openWin('home');}
-function incLoginCount(){ const k='loginCount'; const v=parseInt(localStorage.getItem(k)||'0',10)+1; localStorage.setItem(k,String(v)); }
+  <!-- Dock -->
+  <div class="dock">
+    <div class="dock-icon" onclick="openWindow('homeWindow')">🏠</div>
+    <div class="dock-icon" onclick="openWindow('docsWindow')">📂</div>
+    <div class="dock-icon" onclick="openWindow('photosWindow')">🖼️</div>
+    <div class="dock-icon" onclick="openWindow('reportsWindow')">📊</div>
+    <div class="dock-icon" onclick="openWindow('settingsWindow')">⚙️</div>
+    <div class="dock-icon admin-only" onclick="openWindow('usersWindow')" style="display:none;">👥</div>
+  </div>
 
-async function handleLogin(){
-  const u=$('#loginUser').value.trim();
-  const p=$('#loginPass').value;
-  if(!u || !p){ alert('Enter username and password.'); return; }
+  <!-- Context Menu -->
+  <div id="contextMenu" class="context-menu"></div>
 
-  // Admin shortcut
-  if(u==='arkandu.khan' && p==='Arkandu@1998'){
-    currentUser='arkandu.khan'; isAdmin=true; await ensureUserRecord(currentUser, {displayName:'Admin Arkandu', email:'admin@example.com'});
-    finalizeLogin(); return;
-  }
-
-  const rec=await get('users',u);
-  if(!rec){ alert('User not found. Register first.'); return; }
-  if((rec.password||'')!==p){ alert('Incorrect password.'); return; }
-  currentUser=u; isAdmin=(u==='arkandu.khan');
-  finalizeLogin();
-}
-
-async function ensureUserRecord(username, defaults={}){
-  const existing=await get('users',username);
-  if(!existing){
-    await put('users', {username, password:defaults.password||'', displayName:defaults.displayName||username, email:defaults.email||'', about:defaults.about||'', joinedAt:Date.now()});
-  }
-}
-
-async function handleRegister(){
-  const username=$('#regUser').value.trim();
-  const password=$('#regPass').value;
-  const displayName=$('#regName').value.trim()||username;
-  const email=$('#regEmail').value.trim();
-  if(!username || !password){ alert('Username & password required.'); return; }
-  const exists=await get('users',username);
-  if(exists){ alert('Username already exists.'); return; }
-  await add('users',{username,password,displayName,email,about:'',joinedAt:Date.now()});
-  alert('Account created. You can login now.');
-  $('#tabLogin').click();
-}
-
-function finalizeLogin(){
-  localStorage.setItem('loggedInUser',currentUser);
-  incLoginCount();
-  who.textContent=currentUser + (isAdmin?' • Admin':'');
-  dockUsers.style.display = isAdmin ? 'inline-block' : 'none';
-  renderAll();
-  showApp();
-}
-
-function logout(){ localStorage.removeItem('loggedInUser'); currentUser=null; isAdmin=false; showLogin(); }
-
-/* Tabs */
-$('#tabLogin').addEventListener('click',()=>{ $('#tabLogin').classList.add('active'); $('#tabRegister').classList.remove('active'); $('#loginForm').classList.remove('hidden'); $('#registerForm').classList.add('hidden');});
-$('#tabRegister').addEventListener('click',()=>{ $('#tabRegister').classList.add('active'); $('#tabLogin').classList.remove('active'); $('#registerForm').classList.remove('hidden'); $('#loginForm').classList.add('hidden');});
-$('#loginBtn').addEventListener('click',handleLogin);
-$('#registerBtn').addEventListener('click',handleRegister);
-
-/* -------- App windows -------- */
-function openWin(id){
-  document.querySelectorAll('.window').forEach(w=>w.style.display='none');
-  const win=$('#'+id); if(!win) return; win.style.display='block';
-  if(id==='home') renderHome();
-  if(id==='documents') renderDocs();
-  if(id==='photos') renderPhotos();
-  if(id==='reports') renderReports();
-  if(id==='users') renderUsers();
-}
-
-/* Drag windows by header */
-function makeDraggable(win){
-  const header=win.querySelector('.h'); if(!header) return;
-  let down=false,sx=0,sy=0,sl=0,st=0;
-  header.addEventListener('mousedown',e=>{down=true;win.style.cursor='grabbing';const r=win.getBoundingClientRect();sl=r.left;st=r.top;sx=e.clientX;sy=e.clientY;win.style.left=r.left+'px';win.style.top=r.top+'px';win.style.transform='none';});
-  document.addEventListener('mousemove',e=>{if(!down) return; win.style.left=(sl+e.clientX-sx)+'px'; win.style.top=(st+e.clientY-sy)+'px';});
-  document.addEventListener('mouseup',()=>{down=false;win.style.cursor='';});
-}
-document.querySelectorAll('.window').forEach(makeDraggable);
-
-$('#logoutBtn').addEventListener('click',logout);
-
-/* -------- Upload & Lists -------- */
-const docInput=$('#docInput'); const photoInput=$('#photoInput');
-$('#docPick').addEventListener('click',()=>docInput.click());
-$('#photoPick').addEventListener('click',()=>photoInput.click());
-docInput.addEventListener('change',async e=>{ await saveFiles(e.target.files,'docs'); await renderDocs(); await renderReports(); docInput.value=''; });
-photoInput.addEventListener('change',async e=>{ await saveFiles(e.target.files,'photos'); await renderPhotos(); await renderReports(); photoInput.value=''; });
-
-async function saveFiles(fileList, store){
-  for(const f of Array.from(fileList||[])){
-    const rec={ name:f.name, type:f.type, size:f.size, createdAt:Date.now(), blob:f, tags:[], folder:'Primary' };
-    await add(store,rec);
-  }
-}
-function addDrop(el, store){
-  el.addEventListener('dragover',e=>{e.preventDefault(); el.classList.add('drop-target');});
-  el.addEventListener('dragleave',()=>el.classList.remove('drop-target'));
-  el.addEventListener('drop',async e=>{e.preventDefault(); el.classList.remove('drop-target'); const files=e.dataTransfer?.files||[]; if(files.length){ await saveFiles(files,store); store==='docs'?renderDocs():renderPhotos(); renderReports(); }});
-}
-addDrop($('#documents'),'docs'); addDrop($('#photos'),'photos');
-
-/* -------- Context menu, Inline rename -------- */
-const ctx=$('#ctx'); let ctxRecord=null;
-function hideCtx(){ ctx.classList.add('hidden'); ctx.innerHTML=''; ctxRecord=null; document.removeEventListener('click',outsideCtx); }
-function outsideCtx(e){ if(!ctx.contains(e.target)) hideCtx(); }
-function showCtx(ev, store, record){
-  ctxRecord={store,record};
-  ctx.innerHTML='';
-  const title=document.createElement('div'); title.className='row'; title.style.fontWeight='700'; title.textContent=record.name; ctx.appendChild(title);
-
-  const view=document.createElement('div'); view.className='row'; view.textContent='View';
-  view.onclick=()=>{ openViewer(record); hideCtx(); }; ctx.appendChild(view);
-
-  const dl=document.createElement('div'); dl.className='row'; dl.textContent='Download';
-  dl.onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(record.blob); a.download=record.name; a.click(); hideCtx(); }; ctx.appendChild(dl);
-
-  const rename=document.createElement('div'); rename.className='row'; rename.textContent='Rename';
-  rename.onclick=async ()=>{ const nn=prompt('New name:', record.name); if(nn && nn.trim()){ record.name=nn.trim(); await put(store,record); refreshLists(); } hideCtx(); }; ctx.appendChild(rename);
-
-  const tagRow=document.createElement('div'); tagRow.className='row';
-  const tagInput=document.createElement('input'); tagInput.placeholder='comma tags'; tagInput.value=(record.tags||[]).join(', '); tagRow.appendChild(tagInput); ctx.appendChild(tagRow);
-
-  const folderRow=document.createElement('div'); folderRow.className='row';
-  const sel=document.createElement('select'); ['Primary','Archive'].forEach(f=>{const o=document.createElement('option');o.value=f;o.text=f;if((record.folder||'Primary')===f) o.selected=true; sel.appendChild(o);}); folderRow.appendChild(sel); ctx.appendChild(folderRow);
-
-  const save=document.createElement('div'); save.className='row'; save.style.justifyContent='flex-end';
-  const sb=document.createElement('button'); sb.className='small-btn'; sb.textContent='Save'; save.appendChild(sb);
-  sb.onclick=async ()=>{ record.tags=tagInput.value.split(',').map(s=>s.trim()).filter(Boolean); record.folder=sel.value; await put(store,record); refreshLists(); hideCtx(); };
-  ctx.appendChild(save);
-
-  const move=document.createElement('div'); move.className='row'; move.textContent=(record.folder==='Archive'?'Move to Primary':'Move to Archive');
-  move.onclick=async ()=>{ record.folder=(record.folder==='Archive'?'Primary':'Archive'); await put(store,record); refreshLists(); hideCtx(); }; ctx.appendChild(move);
-
-  const delRow=document.createElement('div'); delRow.className='row'; delRow.style.color='#ff6b6b'; delRow.textContent='Delete';
-  delRow.onclick=async ()=>{ if(confirm('Delete "'+record.name+'"?')){ await del(store,record.id); refreshLists(); } hideCtx(); }; ctx.appendChild(delRow);
-
-  const x=(ev.pageX||ev.clientX+window.scrollX), y=(ev.pageY||ev.clientY+window.scrollY);
-  ctx.style.left=x+'px'; ctx.style.top=y+'px'; ctx.classList.remove('hidden');
-  document.addEventListener('click',outsideCtx);
-}
-function openViewer(rec){
-  const v=$('#viewer'); const f=$('#viewerFrame');
-  if(rec.type.startsWith('image/')){ f.src=URL.createObjectURL(rec.blob); }
-  else if(rec.type==='application/pdf' || rec.type.startsWith('text')){ f.src=URL.createObjectURL(rec.blob); }
-  else{ const a=document.createElement('a'); a.href=URL.createObjectURL(rec.blob); a.target='_blank'; a.click(); return; }
-  v.style.display='flex';
-}
-$('#viewerClose').addEventListener('click',()=>{$('#viewer').style.display='none'; $('#viewerFrame').src='about:blank';});
-
-/* Inline rename in list (double-click on name) */
-async function inlineRename(store, rec, titleEl){
-  const input=document.createElement('input'); input.value=rec.name; input.style.width='100%';
-  titleEl.replaceWith(input); input.focus(); input.select();
-  function save(){ rec.name=input.value.trim()||rec.name; put(store,rec).then(refreshLists); }
-  input.addEventListener('blur',save); input.addEventListener('keydown',e=>{ if(e.key==='Enter') input.blur(); if(e.key==='Escape') refreshLists(); });
-}
-
-/* -------- Renderers -------- */
-async function renderDocs(){
-  const filter=$('#docFilter').value; const list=$('#docList'); list.innerHTML='';
-  let docs=await all('docs'); if(filter!=='All') docs=docs.filter(d=>(d.folder||'Primary')===filter);
-  docs.forEach(d=>{
-    const li=document.createElement('li'); li.className='doc-item'; li.dataset.id=d.id;
-    li.addEventListener('contextmenu',ev=>{ev.preventDefault(); showCtx(ev,'docs',d);});
-    const icon=document.createElement('div'); icon.className='doc-icon';
-    icon.textContent = d.type==='application/pdf' ? '📕' : (d.type.startsWith('text')?'📄':'📁');
-    const meta=document.createElement('div'); meta.className='doc-meta';
-    const title=document.createElement('div'); title.className='title'; title.textContent=d.name; title.title='Double-click to rename'; title.addEventListener('dblclick',()=>inlineRename('docs',d,title));
-    const sub=document.createElement('div'); sub.className='sub'; sub.textContent=`${fmtSize(d.size)} • ${fmtDate(d.createdAt)} • ${d.folder||'Primary'}`;
-    const tags=document.createElement('div'); (d.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.className='tag'; s.textContent=t; tags.appendChild(s); });
-    meta.appendChild(title); meta.appendChild(sub); meta.appendChild(tags);
-    const actions=document.createElement('div'); const v=document.createElement('button'); v.className='small-btn'; v.textContent='View';
-    v.onclick=()=>openViewer(d);
-    const dl=document.createElement('a'); dl.className='small-btn'; dl.style.textDecoration='none'; dl.textContent='Download'; dl.href=URL.createObjectURL(d.blob); dl.download=d.name;
-    const menu=document.createElement('button'); menu.className='small-btn'; menu.textContent='⋯'; menu.onclick=(ev)=>{ev.stopPropagation(); const r=menu.getBoundingClientRect(); showCtx({pageX:r.right,pageY:r.bottom},'docs',d);};
-    actions.style.display='flex'; actions.style.gap='8px'; actions.appendChild(v); actions.appendChild(dl); actions.appendChild(menu);
-    li.appendChild(icon); li.appendChild(meta); li.appendChild(actions); list.appendChild(li);
-  });
-  $('#rpDocs').textContent=(await all('docs')).length;
-  $('#homeDocs').textContent=$('#rpDocs').textContent;
-}
-async function renderPhotos(){
-  const filter=$('#photoFilter').value; const wrap=$('#photoGallery'); wrap.innerHTML='';
-  let photos=await all('photos'); if(filter!=='All') photos=photos.filter(p=>(p.folder||'Primary')===filter);
-  photos.forEach(p=>{
-    const card=document.createElement('div'); card.className='photo-card'; card.addEventListener('contextmenu',ev=>{ev.preventDefault(); showCtx(ev,'photos',p);});
-    const img=document.createElement('img'); img.src=URL.createObjectURL(p.blob); img.alt=p.name; img.onclick=()=>openViewer(p);
-    const ov=document.createElement('div'); ov.className='photo-overlay';
-    const left=document.createElement('div'); left.textContent=p.name;
-    const right=document.createElement('div'); right.style.opacity='.95'; right.style.fontSize='11px'; right.textContent=fmtSize(p.size);
-    ov.appendChild(left); ov.appendChild(right);
-    card.appendChild(img); card.appendChild(ov); wrap.appendChild(card);
-  });
-  $('#rpPhotos').textContent=(await all('photos')).length;
-  $('#homePhotos').textContent=$('#rpPhotos').textContent;
-}
-async function renderUsers(){
-  const list=$('#userList'); list.innerHTML='';
-  const users=await all('users');
-  users.forEach(u=>{ const li=document.createElement('li'); li.textContent = `${u.username} — ${u.displayName||''} ${u.email?('('+u.email+')'):''}`; list.appendChild(li); });
-}
-async function renderHome(){
-  const rec=await get('users',currentUser) || {username:currentUser};
-  $('#homeName').textContent=rec.displayName||currentUser;
-  $('#homeUsername').textContent='@'+currentUser;
-  $('#homeEmail').textContent=rec.email||'—';
-  $('#homeJoined').textContent='Joined: '+fmtDate(rec.joinedAt||Date.now());
-  $('#homeAbout').textContent=rec.about||'Use Settings to edit profile info.';
-}
-async function renderReports(){
-  $('#rpLogins').textContent = localStorage.getItem('loginCount') || '1';
-  const docs=(await all('docs')).length, photos=(await all('photos')).length;
-  $('#rpDocs').textContent=String(docs); $('#rpPhotos').textContent=String(photos);
-  const ctx=document.getElementById('rpChart').getContext('2d'); if(usageChart) usageChart.destroy();
-  usageChart=new Chart(ctx,{type:'bar',data:{labels:['Logins','Docs','Photos'],datasets:[{label:'Counts',data:[parseInt($('#rpLogins').textContent,10),docs,photos]}]},options:{responsive:true,maintainAspectRatio:false}});
-}
-async function renderAll(){ await renderHome(); await renderDocs(); await renderPhotos(); await renderUsers(); await renderReports(); }
-function refreshLists(){ renderDocs(); renderPhotos(); }
-
-/* Clear buttons */
-$('#clearDocs').addEventListener('click',async()=>{ if(!confirm('Clear all documents?')) return; await clear('docs'); renderDocs(); renderReports(); });
-$('#clearPhotos').addEventListener('click',async()=>{ if(!confirm('Clear all photos?')) return; await clear('photos'); renderPhotos(); renderReports(); });
-
-/* Filters */
-$('#docFilter').addEventListener('change',renderDocs);
-$('#photoFilter').addEventListener('change',renderPhotos);
-
-/* Settings save */
-$('#saveSettings').addEventListener('click',async()=>{
-  let rec=await get('users',currentUser) || {username:currentUser};
-  rec.displayName=$('#setName').value.trim()||rec.displayName||currentUser;
-  rec.email=$('#setEmail').value.trim()||rec.email||'';
-  rec.about=$('#setAbout').value.trim()||rec.about||'';
-  const np=$('#setPass').value; if(np) rec.password=np;
-  rec.joinedAt=rec.joinedAt||Date.now();
-  await put('users',rec); alert('Saved'); renderHome(); renderUsers();
-});
-
-/* Init */
-(async ()=>{
-  await openDB();
-  const remembered=localStorage.getItem('loggedInUser');
-  if(remembered){ currentUser=remembered; isAdmin=(currentUser==='arkandu.khan'); who.textContent=currentUser + (isAdmin?' • Admin':''); dockUsers.style.display=isAdmin?'inline-block':'none'; showApp(); renderAll(); }
-  else{ showLogin(); }
-})();
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
