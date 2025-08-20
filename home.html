@@ -2,128 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vision Home</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: url("https://images.unsplash.com/photo-1525182008055-f88b95ff7980") no-repeat center center/cover;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 30px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      color: white;
-    }
-
-    .logout-btn {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      padding: 8px 15px;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .logout-btn:hover {
-      background: rgba(255,255,255,0.4);
-    }
-
-    .profile {
-      text-align: center;
-      margin: 20px;
-    }
-
-    .profile img {
-      border-radius: 50%;
-      width: 90px;
-      height: 90px;
-      border: 2px solid rgba(255,255,255,0.5);
-    }
-
-    .profile h3 {
-      color: white;
-      margin-top: 10px;
-    }
-
-    .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      padding: 30px;
-      flex: 1;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 30px;
-      text-align: center;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
-      transition: 0.3s;
-      border: 1px solid rgba(255,255,255,0.2);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
-
-    .card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    }
-
-    .admin-only {
-      background: linear-gradient(135deg, rgba(0,200,255,0.3), rgba(0,120,255,0.3));
-    }
-  </style>
+  <title>Dashboard - Glass UI</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Navbar -->
   <div class="navbar">
-    <h2>🍏 Vision Drive</h2>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <h2>Vision Dashboard</h2>
+    <button onclick="logout()" class="logout">Logout</button>
   </div>
 
+  <!-- Profile -->
   <div class="profile">
-    <img src="https://i.pravatar.cc/100" alt="User Avatar">
-    <h3 id="welcomeText"></h3>
+    <img src="https://i.pravatar.cc/100" alt="User">
+    <h3 id="welcomeName">Welcome User</h3>
   </div>
 
-  <div class="container">
-    <div class="card">📂 Documents</div>
-    <div class="card">🖼️ Photos</div>
-    <div class="card">⚙️ Settings</div>
-    <div class="card">🏠 Home</div>
-    <div class="card">📊 Reports</div>
-    <div class="card admin-only">👥 User Management</div>
+  <!-- Main Content Sections -->
+  <div id="content">
+    <section id="documents" class="tab active">
+      <h2>📂 Documents</h2>
+      <input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt" multiple>
+      <ul id="docList"></ul>
+    </section>
+
+    <section id="photos" class="tab">
+      <h2>🖼️ Photos</h2>
+      <input type="file" id="photoUpload" accept="image/*" multiple>
+      <div id="photoGallery"></div>
+    </section>
+
+    <section id="settings" class="tab">
+      <h2>⚙️ Settings</h2>
+      <label>Change Username:</label>
+      <input type="text" id="usernameInput" placeholder="Enter new username">
+      <button onclick="updateUsername()">Save</button>
+    </section>
+
+    <section id="reports" class="tab">
+      <h2>📊 Reports</h2>
+      <p id="reportData">Total logins: 0<br>Documents uploaded: 0<br>Photos uploaded: 0</p>
+    </section>
+
+    <section id="users" class="tab">
+      <h2>👥 User Management</h2>
+      <p>Admin only: All registered users will show here.</p>
+      <ul id="userList"></ul>
+    </section>
   </div>
 
-  <script>
-    let user = localStorage.getItem("loggedInUser");
-    if (!user) {
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("welcomeText").innerText = "Welcome, " + user;
-    }
+  <!-- iOS-style Bottom Nav -->
+  <div class="bottom-nav">
+    <button onclick="showTab('documents')">📂</button>
+    <button onclick="showTab('photos')">🖼️</button>
+    <button onclick="showTab('settings')">⚙️</button>
+    <button onclick="showTab('reports')">📊</button>
+    <button onclick="showTab('users')" id="adminTab" class="hidden">👥</button>
+  </div>
 
-    if (user !== "arkandu.khan") {
-      document.querySelector(".admin-only").style.display = "none";
-    }
-
-    function logout() {
-      localStorage.removeItem("loggedInUser");
-      window.location.href = "index.html";
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
