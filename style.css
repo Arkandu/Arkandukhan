@@ -1,150 +1,94 @@
-/* ===== Background ===== */
+/* General */
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: url('https://wallpapercave.com/wp/wp7418473.jpg') no-repeat center center fixed;
-  background-size: cover;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ===== Glassmorphism Window ===== */
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  padding: 20px;
+}
+
+/* Login */
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+.login-box {
+  width: 300px;
+  text-align: center;
+}
+.login-box input, .login-box button {
+  width: 90%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+}
+
+/* Windows */
 .window {
   display: none;
   position: absolute;
-  top: 15%;
+  top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  width: 450px;
-  min-height: 250px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 20px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  color: white;
-  text-align: center;
+  width: 80%;
+  height: 70%;
+  overflow-y: auto;
 }
 
-/* ===== Login Box ===== */
-#loginScreen {
-  top: 25%;
-  width: 350px;
-}
-
-#loginScreen input {
-  margin: 8px 0;
-  padding: 10px;
-  width: 85%;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-}
-
-#loginScreen button {
-  margin-top: 12px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 12px;
-  background: #00c6ff;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-#loginScreen button:hover {
-  background: #0072ff;
-}
-
-/* ===== Dock ===== */
+/* Dock */
 .dock {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  border-radius: 30px;
+  padding: 10px 20px;
   display: flex;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 12px 25px;
-  border-radius: 25px;
-  backdrop-filter: blur(10px);
+  gap: 20px;
 }
-
 .dock-icon {
-  font-size: 28px;
-  margin: 0 12px;
+  font-size: 24px;
   cursor: pointer;
   transition: transform 0.2s;
 }
-
 .dock-icon:hover {
   transform: scale(1.3);
 }
 
-/* ===== Upload Boxes ===== */
-.upload-box {
-  margin: 12px;
-  padding: 12px;
-  border: 2px dashed rgba(255, 255, 255, 0.4);
-  border-radius: 12px;
-  cursor: pointer;
-  color: white;
-  transition: 0.3s;
+/* Logout highlight */
+.dock-icon:last-child:hover {
+  color: #ff4c4c;
 }
 
-.upload-box:hover {
-  background: rgba(255, 255, 255, 0.1);
+/* File thumbnails */
+.thumb-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-
-/* ===== File Items ===== */
-.file-item {
-  margin: 8px;
-  padding: 8px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  display: inline-block;
-  color: white;
-  text-align: center;
-  transition: background 0.3s;
-}
-
-.file-item:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.file-item img {
-  width: 90px;
-  height: 70px;
-  border-radius: 8px;
+.thumb-grid img {
+  width: 100px;
+  height: 100px;
   object-fit: cover;
-  display: block;
-  margin: auto;
-}
-
-.file-name {
-  margin-top: 5px;
-  font-size: 14px;
-  word-wrap: break-word;
-}
-
-/* ===== Context Menu ===== */
-.context-menu {
-  position: absolute;
-  display: none;
-  background: rgba(30, 30, 30, 0.9);
-  border-radius: 10px;
-  padding: 5px;
-  color: white;
-  z-index: 999;
-}
-
-.context-menu div {
-  padding: 8px 15px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.context-menu div:hover {
-  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
 }
