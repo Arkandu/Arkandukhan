@@ -3,72 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Page</title>
+  <title>Dashboard</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: url("https://picsum.photos/1600/900?blur=3") no-repeat center center/cover;
+      font-family: "Segoe UI", sans-serif;
+      background: url("https://picsum.photos/1920/1080?blur=3") no-repeat center center/cover;
       display: flex;
-      justify-content: center;
-      align-items: center;
       flex-direction: column;
-      height: 100vh;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
       margin: 0;
+      padding: 40px;
+      color: white;
     }
-    .card {
-      background: rgba(22, 27, 34, 0.6);
-      backdrop-filter: blur(12px);
-      padding: 30px;
-      border-radius: 12px;
+
+    header {
+      width: 100%;
+      max-width: 1200px;
+      margin-bottom: 30px;
       text-align: center;
-      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin: 0;
       color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
     }
-    h1 {
-      margin-bottom: 20px;
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
     }
-    .btn {
-      padding: 12px 20px;
-      margin: 10px;
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      transition: transform 0.3s ease, background 0.3s ease;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    .card:hover {
+      transform: translateY(-8px) scale(1.02);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .card img {
+      width: 80px;
+      margin-bottom: 15px;
+    }
+
+    .card h2 {
+      margin: 10px 0;
+      font-size: 1.3rem;
+    }
+
+    .card a, .card button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 20px;
       background: #238636;
       color: white;
+      border-radius: 8px;
       text-decoration: none;
-      border-radius: 6px;
       font-weight: bold;
-      display: inline-block;
+      border: none;
+      cursor: pointer;
     }
-    .btn:hover {
+
+    .card a:hover, .card button:hover {
       background: #2ea043;
     }
+
     .logout {
-      margin-top: 20px;
+      margin-top: 40px;
+      padding: 12px 25px;
       background: #d73a49;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
     }
+
     .logout:hover {
       background: #f85149;
     }
   </style>
 </head>
 <body>
-  <div class="card">
+  <header>
     <h1 id="welcome"></h1>
-    <a class="btn" href="https://www.facebook.com" target="_blank">Go to Facebook</a>
-    <a class="btn" href="https://www.instagram.com" target="_blank">Go to Instagram</a>
-    <br>
-    <button class="btn logout" onclick="logout()">Logout</button>
+  </header>
+
+  <div class="grid">
+    <!-- Facebook Card -->
+    <div class="card">
+      <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" alt="Facebook">
+      <h2>Facebook</h2>
+      <p>Connect with friends and the world around you.</p>
+      <a href="https://www.facebook.com" target="_blank">Open</a>
+    </div>
+
+    <!-- Instagram Card -->
+    <div class="card">
+      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram">
+      <h2>Instagram</h2>
+      <p>Share your moments and explore the world visually.</p>
+      <a href="https://www.instagram.com" target="_blank">Open</a>
+    </div>
+
+    <!-- Settings Card -->
+    <div class="card">
+      <img src="https://cdn-icons-png.flaticon.com/512/3524/3524659.png" alt="Settings">
+      <h2>Settings</h2>
+      <p>Manage your account preferences and security.</p>
+      <button onclick="openSettings()">Open</button>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="card">
+      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Profile">
+      <h2>Profile</h2>
+      <p id="profile-info">User details will appear here.</p>
+      <button onclick="showProfile()">View</button>
+    </div>
   </div>
+
+  <button class="logout" onclick="logout()">Logout</button>
 
   <script>
     const user = localStorage.getItem("loggedInUser");
     if (!user) {
       window.location.href = "index.html";
     } else {
-      document.getElementById("welcome").innerText = "Welcome, " + user + "!";
+      document.getElementById("welcome").innerText = "👋 Welcome, " + user + "!";
+      document.getElementById("profile-info").innerText = "Logged in as: " + user;
     }
 
     function logout() {
       localStorage.removeItem("loggedInUser");
       window.location.href = "index.html";
+    }
+
+    function openSettings() {
+      alert("⚙️ Settings feature coming soon!");
+    }
+
+    function showProfile() {
+      alert("👤 Profile: " + user + "\nEmail: " + user + "@example.com");
     }
   </script>
 </body>
