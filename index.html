@@ -3,62 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <title>Apple Vision Pro Style Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      padding: 20px;
+      color: white;
+    }
+    #loginScreen {
+      width: 350px;
+      text-align: center;
+    }
+    #loginScreen input {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+    }
+    #loginScreen button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #app {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .dock {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      background: rgba(255,255,255,0.15);
+      padding: 10px 20px;
+      border-radius: 30px;
+      backdrop-filter: blur(15px);
+    }
+    .dock-icon {
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .dock-icon:hover {
+      transform: scale(1.2);
+    }
+    .dock-icon:last-child:hover {
+      color: #ff4c4c;
+      transform: scale(1.3);
+    }
+    .window {
+      display: none;
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 70%;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      padding: 20px;
+      overflow-y: auto;
+      color: black;
+    }
+    .file-list {
+      margin-top: 10px;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 5px 0;
+      background: rgba(255,255,255,0.2);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+    .file-item img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
   <!-- Login Screen -->
-  <div id="loginScreen" class="login-screen">
-    <div class="login-box glass">
-      <h2>Login</h2>
-      <input type="text" id="loginUsername" placeholder="Username">
-      <input type="password" id="loginPassword" placeholder="Password">
-      <button onclick="login()">Login</button>
-    </div>
+  <div id="loginScreen" class="glass">
+    <h2>Login</h2>
+    <input type="text" id="loginUsername" placeholder="Username">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
   </div>
 
-  <!-- App Container -->
-  <div id="appContainer" style="display:none;">
-    <!-- Windows -->
-    <div class="window glass" id="homeWindow">
-      <h2>🏠 Home</h2>
-      <div id="homeDetails">
-        <p><strong>Name:</strong> <span id="profileName">Guest</span></p>
-        <p><strong>Email:</strong> <span id="profileEmail">Not set</span></p>
-        <p><strong>Role:</strong> <span id="profileRole">User</span></p>
-      </div>
-    </div>
-
-    <div class="window glass" id="documentsWindow">
-      <h2>📂 Documents</h2>
-      <input type="file" id="docUpload" multiple>
-      <div id="docList"></div>
-    </div>
-
-    <div class="window glass" id="photosWindow">
-      <h2>🖼️ Photos</h2>
-      <input type="file" id="photoUpload" accept="image/*" multiple>
-      <div id="photoList" class="thumb-grid"></div>
-    </div>
-
-    <div class="window glass" id="reportsWindow">
-      <h2>📊 Reports</h2>
-      <p>Total Logins: <span id="loginCount">0</span></p>
-    </div>
-
-    <div class="window glass" id="usersWindow">
-      <h2>👥 User Management (Admin Only)</h2>
-      <ul id="userList"></ul>
-    </div>
-
-    <div class="window glass" id="settingsWindow">
-      <h2>⚙️ Settings</h2>
-      <label>Name: <input type="text" id="settingName"></label><br>
-      <label>Email: <input type="email" id="settingEmail"></label><br>
-      <button onclick="saveSettings()">Save</button>
-    </div>
-
-    <!-- Dock Navigation -->
-    <div class="dock" id="dock">
+  <!-- App -->
+  <div id="app">
+    <!-- Dock -->
+    <div class="dock">
       <div class="dock-icon" onclick="openWindow('home')">🏠</div>
       <div class="dock-icon" onclick="openWindow('documents')">📂</div>
       <div class="dock-icon" onclick="openWindow('photos')">🖼️</div>
@@ -67,8 +127,130 @@
       <div class="dock-icon" onclick="openWindow('settings')">⚙️</div>
       <div class="dock-icon" onclick="logout()">🚪</div>
     </div>
+
+    <!-- Windows -->
+    <div id="home" class="window">
+      <h2>🏠 Home</h2>
+      <p id="profileInfo">Welcome!</p>
+    </div>
+
+    <div id="documents" class="window">
+      <h2>📂 Documents</h2>
+      <input type="file" id="docUpload" multiple>
+      <div id="docList" class="file-list"></div>
+    </div>
+
+    <div id="photos" class="window">
+      <h2>🖼️ Photos</h2>
+      <input type="file" id="photoUpload" accept="image/*" multiple>
+      <div id="photoList" class="file-list"></div>
+    </div>
+
+    <div id="reports" class="window">
+      <h2>📊 Reports</h2>
+      <p>Total logins: <span id="loginCount">0</span></p>
+    </div>
+
+    <div id="users" class="window">
+      <h2>👥 User Management</h2>
+      <ul id="userList"></ul>
+    </div>
+
+    <div id="settings" class="window">
+      <h2>⚙️ Settings</h2>
+      <label>Name: <input type="text" id="nameSetting"></label><br><br>
+      <label>Email: <input type="email" id="emailSetting"></label><br><br>
+      <button onclick="saveSettings()">Save</button>
+    </div>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    let currentUser = null;
+    let loginCounter = 0;
+    const users = [{username: "arkandu.khan", password: "Arkandu@1998", role: "admin"}];
+
+    function login() {
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
+
+      const user = users.find(u => u.username === username && u.password === password);
+      if (user) {
+        currentUser = user;
+        loginCounter++;
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        document.getElementById("loginCount").textContent = loginCounter;
+
+        document.getElementById("profileInfo").innerText = `Welcome, ${username}`;
+        if (user.role === "admin") {
+          document.querySelector(".admin-only").style.display = "block";
+          loadUsers();
+        } else {
+          document.querySelector(".admin-only").style.display = "none";
+        }
+      } else {
+        alert("Invalid login");
+      }
+    }
+
+    function logout() {
+      document.getElementById("app").style.display = "none";
+      document.getElementById("loginScreen").style.display = "block";
+      document.getElementById("loginUsername").value = "";
+      document.getElementById("loginPassword").value = "";
+      currentUser = null;
+    }
+
+    function openWindow(id) {
+      document.querySelectorAll(".window").forEach(w => w.style.display = "none");
+      document.getElementById(id).style.display = "block";
+    }
+
+    document.getElementById("docUpload").addEventListener("change", e => {
+      const list = document.getElementById("docList");
+      Array.from(e.target.files).forEach(file => {
+        const item = document.createElement("div");
+        item.className = "file-item";
+        item.textContent = file.name;
+        list.appendChild(item);
+      });
+    });
+
+    document.getElementById("photoUpload").addEventListener("change", e => {
+      const list = document.getElementById("photoList");
+      Array.from(e.target.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const item = document.createElement("div");
+          item.className = "file-item";
+          const img = document.createElement("img");
+          img.src = ev.target.result;
+          const span = document.createElement("span");
+          span.textContent = file.name;
+          item.appendChild(img);
+          item.appendChild(span);
+          list.appendChild(item);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    function saveSettings() {
+      const name = document.getElementById("nameSetting").value;
+      const email = document.getElementById("emailSetting").value;
+      document.getElementById("profileInfo").innerText = `Welcome, ${name} (${email})`;
+      alert("Settings saved!");
+    }
+
+    function loadUsers() {
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+      users.forEach(u => {
+        const li = document.createElement("li");
+        li.textContent = `${u.username} (${u.role})`;
+        userList.appendChild(li);
+      });
+    }
+  </script>
 </body>
 </html>
