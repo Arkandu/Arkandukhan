@@ -1,116 +1,389 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apple Style Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vision Drive — Home</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <!-- Background -->
   <div class="background"></div>
 
-  <!-- Floating Windows (hidden until clicked) -->
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="title">🍏 Vision Drive</div>
+    <div class="right">
+      <span id="userLabel"></span>
+      <button class="btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <!-- Floating windows -->
   <div id="documents" class="window">
     <h2>📂 Documents</h2>
-    <input type="file" multiple>
+    <input id="docInput" type="file" multiple>
+    <div class="window-actions">
+      <button id="clearDocsBtn">Clear All Documents</button>
+    </div>
     <ul id="docList"></ul>
   </div>
 
   <div id="photos" class="window">
     <h2>🖼️ Photos</h2>
-    <input type="file" accept="image/*" multiple onchange="previewPhotos(event)">
-    <div id="photoGallery"></div>
+    <input id="photoInput" type="file" accept="image/*" multiple>
+    <div class="window-actions">
+      <button id="clearPhotosBtn">Clear All Photos</button>
+    </div>
+    <div id="photoGallery" class="photo-gallery"></div>
   </div>
 
   <div id="settings" class="window">
     <h2>⚙️ Settings</h2>
-    <form>
-      <label>Username:</label>
-      <input type="text" value="Arkandu"><br><br>
-      <label>Password:</label>
-      <input type="password" placeholder="••••••"><br><br>
-      <button type="submit">Save</button>
-    </form>
+    <label>Display name</label>
+    <input id="displayName" placeholder="Enter display name">
+    <div style="height:10px"></div>
+    <label>Theme (placeholder)</label>
+    <select id="themeSelect">
+      <option value="default">Default</option>
+      <option value="dark">Dark (placeholder)</option>
+    </select>
+    <div style="height:12px"></div>
+    <button id="saveSettings">Save Settings</button>
   </div>
 
   <div id="reports" class="window">
     <h2>📊 Reports</h2>
-    <p>Total Logins: <span id="loginCount">15</span></p>
-    <p>Total Uploads: <span id="uploadCount">8</span></p>
-    <canvas id="reportChart" width="400" height="200"></canvas>
+    <p>Total logins: <span id="reportLogins">0</span></p>
+    <p>Documents uploaded: <span id="reportDocs">0</span></p>
+    <p>Photos uploaded: <span id="reportPhotos">0</span></p>
+    <canvas id="reportChart" width="600" height="200"></canvas>
   </div>
 
   <div id="users" class="window">
     <h2>👥 User Management</h2>
-    <ul id="userList">
-      <li>Admin (You)</li>
-      <li>User1</li>
-      <li>User2</li>
-      <li>User3</li>
-    </ul>
+    <p>(Admin only) — Registered users:</p>
+    <ul id="userList"></ul>
   </div>
 
-  <!-- Bottom Dock -->
+  <!-- Dock (bottom) -->
   <div class="dock">
-    <div class="dock-icon" onclick="openWindow('documents')">📂</div>
-    <div class="dock-icon" onclick="openWindow('photos')">🖼️</div>
-    <div class="dock-icon" onclick="openWindow('settings')">⚙️</div>
-    <div class="dock-icon" onclick="openWindow('reports')">📊</div>
-    <div class="dock-icon admin-only" onclick="openWindow('users')">👥</div>
+    <div class="dock-item" onclick="openWindow('documents')" title="Documents">📂</div>
+    <div class="dock-item" onclick="openWindow('photos')" title="Photos">🖼️</div>
+    <div class="dock-item" onclick="openWindow('settings')" title="Settings">⚙️</div>
+    <div class="dock-item" onclick="openWindow('reports')" title="Reports">📊</div>
+    <div id="userMgmtDock" class="dock-item" onclick="openWindow('users')" title="User Management">👥</div>
+  </div>
+
+  <!-- File viewer modal (for docs like pdf) -->
+  <div id="viewerModal" class="viewer-modal hidden">
+    <div class="viewer-inner">
+      <button id="closeViewer" class="viewer-close">Close</button>
+      <iframe id="viewerFrame" style="width:100%;height:80vh;border:0;background:#fff"></iframe>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Open window function
-    function openWindow(id) {
-      document.querySelectorAll('.window').forEach(win => win.style.display = 'none');
-      document.getElementById(id).style.display = 'block';
-    }
+  /*********************
+   * IndexedDB helpers *
+   *********************/
+  const DB_NAME = 'visionDriveDB';
+  const DB_VERSION = 1;
+  let db = null;
 
-    // Example: Hide admin-only if not admin
-    const isAdmin = true; // Change to false to test non-admin
-    if (!isAdmin) {
-      document.querySelector(".admin-only").style.display = "none";
-    }
-
-    // File uploads for documents
-    document.querySelector("#documents input").addEventListener("change", (e) => {
-      const list = document.getElementById("docList");
-      list.innerHTML = "";
-      Array.from(e.target.files).forEach(file => {
-        const li = document.createElement("li");
-        li.textContent = file.name;
-        list.appendChild(li);
-      });
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const rq = indexedDB.open(DB_NAME, DB_VERSION);
+      rq.onerror = () => reject(rq.error);
+      rq.onupgradeneeded = () => {
+        db = rq.result;
+        if (!db.objectStoreNames.contains('photos')) {
+          db.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+        }
+        if (!db.objectStoreNames.contains('docs')) {
+          db.createObjectStore('docs', { keyPath: 'id', autoIncrement: true });
+        }
+        if (!db.objectStoreNames.contains('users')) {
+          db.createObjectStore('users', { keyPath: 'username' });
+        }
+      };
+      rq.onsuccess = () => {
+        db = rq.result;
+        resolve(db);
+      };
     });
+  }
 
-    // Photo preview
-    function previewPhotos(event) {
-      const gallery = document.getElementById("photoGallery");
-      gallery.innerHTML = "";
-      Array.from(event.target.files).forEach(file => {
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(file);
-        img.className = "preview-img";
-        gallery.appendChild(img);
-      });
+  function addRecord(storeName, record) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      const rq = store.add(record);
+      rq.onsuccess = () => resolve(rq.result);
+      rq.onerror = () => reject(rq.error);
+    });
+  }
+
+  function getAllRecords(storeName) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const rq = store.getAll();
+      rq.onsuccess = () => resolve(rq.result);
+      rq.onerror = () => reject(rq.error);
+    });
+  }
+
+  function clearStore(storeName) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      const rq = store.clear();
+      rq.onsuccess = () => resolve();
+      rq.onerror = () => reject(rq.error);
+    });
+  }
+
+  /*********************
+   * Initialization
+   *********************/
+  const userLabel = document.getElementById('userLabel');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  let loggedInUser = localStorage.getItem('loggedInUser') || null;
+  // If your index.html uses "Admin Arkandu" or plain "arkandu.khan" adjust accordingly.
+  // This code treats admin if username equals "arkandu.khan"
+  let isAdmin = (loggedInUser === 'arkandu.khan');
+
+  if (!loggedInUser) {
+    // Not logged in → send to login page
+    window.location.href = 'index.html';
+  } else {
+    userLabel.innerText = loggedInUser;
+  }
+
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('loggedInUser');
+    window.location.href = 'index.html';
+  });
+
+  // Ensure admin-only dock visibility
+  const userMgmtDock = document.getElementById('userMgmtDock');
+  if (!isAdmin) userMgmtDock.style.display = 'none';
+
+  // Wire file inputs
+  const photoInput = document.getElementById('photoInput');
+  const docInput = document.getElementById('docInput');
+  const docList = document.getElementById('docList');
+  const photoGallery = document.getElementById('photoGallery');
+  const clearDocsBtn = document.getElementById('clearDocsBtn');
+  const clearPhotosBtn = document.getElementById('clearPhotosBtn');
+
+  // Reports counters
+  const reportLogins = document.getElementById('reportLogins');
+  const reportDocs = document.getElementById('reportDocs');
+  const reportPhotos = document.getElementById('reportPhotos');
+
+  // Viewer modal
+  const viewerModal = document.getElementById('viewerModal');
+  const viewerFrame = document.getElementById('viewerFrame');
+  document.getElementById('closeViewer').addEventListener('click', () => {
+    viewerModal.classList.add('hidden');
+    viewerFrame.src = 'about:blank';
+  });
+
+  // open/close windows
+  function openWindow(id) {
+    document.querySelectorAll('.window').forEach(w => w.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+    // refresh relevant content
+    if (id === 'documents') renderDocs();
+    if (id === 'photos') renderPhotos();
+    if (id === 'reports') refreshReports();
+    if (id === 'users') renderUsers();
+  }
+
+  // Save files into IDB
+  async function storeFiles(fileList, storeName) {
+    for (const f of fileList) {
+      // We store the raw blob together with metadata
+      const record = {
+        name: f.name,
+        type: f.type,
+        size: f.size,
+        createdAt: Date.now(),
+        blob: await fileToBlob(f)
+      };
+      await addRecord(storeName, record);
     }
+  }
 
-    // Reports chart (example data)
+  function fileToBlob(file) {
+    // return file directly as blob (File inherits Blob)
+    return Promise.resolve(file);
+  }
+
+  // Render functions
+  async function renderDocs() {
+    const docs = await getAllRecords('docs');
+    docList.innerHTML = '';
+    docs.forEach(d => {
+      const li = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(d.blob);
+      link.innerText = d.name;
+      link.download = d.name;
+      link.target = '_blank';
+      link.onclick = () => {
+        // If pdf or viewable in browser, open in viewer modal
+        if (d.type === 'application/pdf' || d.type.startsWith('text/') || d.type === '') {
+          viewerFrame.src = link.href;
+          viewerModal.classList.remove('hidden');
+          return false;
+        }
+      };
+      li.appendChild(link);
+
+      const meta = document.createElement('span');
+      meta.style.marginLeft = '10px';
+      meta.style.opacity = '0.8';
+      meta.innerText = ` (${Math.round(d.size/1024)} KB)`;
+      li.appendChild(meta);
+
+      docList.appendChild(li);
+    });
+    // update counts
+    reportDocs.innerText = docs.length;
+  }
+
+  async function renderPhotos() {
+    const photos = await getAllRecords('photos');
+    photoGallery.innerHTML = '';
+    photos.forEach(p => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(p.blob);
+      img.className = 'preview-img';
+      img.title = p.name;
+      img.onclick = () => {
+        // view large
+        viewerFrame.src = img.src;
+        viewerModal.classList.remove('hidden');
+      };
+      photoGallery.appendChild(img);
+    });
+    reportPhotos.innerText = photos.length;
+  }
+
+  async function renderUsers() {
+    const users = await getAllRecords('users');
+    const userListEl = document.getElementById('userList');
+    userListEl.innerHTML = '';
+    users.forEach(u => {
+      const li = document.createElement('li');
+      li.innerText = `${u.username} (${u.displayName || '-'})`;
+      userListEl.appendChild(li);
+    });
+  }
+
+  async function refreshReports() {
+    // login count stored in localStorage for demo
+    const logins = parseInt(localStorage.getItem('loginCount') || '1', 10);
+    reportLogins.innerText = logins;
+    // docs/photos counts already updated by render functions
+    const docs = await getAllRecords('docs');
+    const photos = await getAllRecords('photos');
+    reportDocs.innerText = docs.length;
+    reportPhotos.innerText = photos.length;
+
+    // Chart update
     const ctx = document.getElementById('reportChart').getContext('2d');
-    new Chart(ctx, {
+    if (window.usageChart) window.usageChart.destroy();
+    window.usageChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Logins', 'Uploads'],
+        labels: ['Logins', 'Docs', 'Photos'],
         datasets: [{
-          label: 'Usage',
-          data: [15, 8],
-          backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)']
+          label: 'Counts',
+          data: [logins, docs.length, photos.length],
+          backgroundColor: ['rgba(75,192,192,0.6)', 'rgba(255,205,86,0.6)', 'rgba(153,102,255,0.6)']
         }]
-      }
+      },
+      options: { responsive: true, maintainAspectRatio: false }
     });
+  }
+
+  // Clear stores
+  clearDocsBtn.addEventListener('click', async () => {
+    if (!confirm('Clear all documents?')) return;
+    await clearStore('docs');
+    renderDocs();
+    refreshReports();
+  });
+  clearPhotosBtn.addEventListener('click', async () => {
+    if (!confirm('Clear all photos?')) return;
+    await clearStore('photos');
+    renderPhotos();
+    refreshReports();
+  });
+
+  // Upload handlers
+  photoInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    await storeFiles(files, 'photos');
+    await renderPhotos();
+    await refreshReports();
+    photoInput.value = '';
+  });
+
+  docInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    await storeFiles(files, 'docs');
+    await renderDocs();
+    await refreshReports();
+    docInput.value = '';
+  });
+
+  // Save settings
+  document.getElementById('saveSettings').addEventListener('click', async () => {
+    const displayName = document.getElementById('displayName').value.trim();
+    if (displayName) {
+      // Save into users store (simple demo)
+      try {
+        const tx = db.transaction('users', 'readwrite');
+        const store = tx.objectStore('users');
+        const username = loggedInUser;
+        store.put({ username, displayName });
+        alert('Saved');
+        renderUsers();
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      alert('Enter a display name first');
+    }
+  });
+
+  // On load: open DB and render initial state
+  (async () => {
+    await openDB();
+    // ensure users store has current user for demo
+    const tx = db.transaction('users', 'readwrite');
+    tx.objectStore('users').put({ username: loggedInUser, displayName: loggedInUser });
+
+    // show default window
+    openWindow('documents');
+    // fill label
+    document.getElementById('userLabel').innerText = loggedInUser;
+    // initial renders
+    await renderDocs();
+    await renderPhotos();
+    await renderUsers();
+    await refreshReports();
+  })();
+
   </script>
 </body>
 </html>
