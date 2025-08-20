@@ -2,249 +2,192 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Vision Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vision OS Desktop</title>
   <style>
+    /* Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body, html {
-      margin: 0;
-      padding: 0;
+      width: 100%;
       height: 100%;
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: url('https://wallpapercave.com/wp/wp9118105.jpg') no-repeat center center / cover;
       overflow: hidden;
     }
 
-    /* Default background */
-    .background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
-      z-index: -1;
-      transition: background 0.5s ease-in-out;
-    }
-
-    .window {
-      display: none;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 420px;
-      min-height: 250px;
-      padding: 20px;
-      border-radius: 20px;
-      backdrop-filter: blur(15px) saturate(180%);
-      background: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-      color: #fff;
-      text-align: center;
-      animation: fadeIn 0.5s ease;
-    }
-
-    input, button {
-      padding: 10px;
-      margin: 8px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-    }
-
-    button {
-      background: #007AFF;
+    /* Top Menu Bar */
+    .menu-bar {
+      height: 28px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
       color: white;
-      cursor: pointer;
-      transition: 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 14px;
     }
-    button:hover { background: #005BBB; }
+    .menu-left span { margin-right: 15px; cursor: pointer; }
+    .menu-right { font-family: monospace; }
 
+    /* Dock */
     .dock {
-      position: fixed;
-      bottom: 20px;
+      position: absolute;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(20px);
-      padding: 12px 25px;
-      border-radius: 25px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-      gap: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-
     .dock-icon {
-      font-size: 22px;
+      font-size: 28px;
+      margin: 0 10px;
       cursor: pointer;
       transition: transform 0.2s;
-      color: white;
     }
     .dock-icon:hover { transform: scale(1.2); }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translate(-50%, -45%); }
-      to { opacity: 1; transform: translate(-50%, -50%); }
+    /* Finder Window */
+    .finder {
+      position: absolute;
+      top: 60px;
+      left: 50px;
+      width: 80%;
+      height: 70%;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(15px);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      display: none;
+      overflow: hidden;
     }
-
-    .file-list {
-      text-align: left;
-      margin-top: 15px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .file-item {
+    .finder-header {
+      background: rgba(0,0,0,0.1);
+      padding: 8px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      padding: 5px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      font-weight: bold;
     }
-    .file-item img {
-      width: 40px;
-      height: 40px;
+    .finder-body {
+      display: flex;
+      height: calc(100% - 40px);
+    }
+    .sidebar {
+      width: 200px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+    }
+    .sidebar div {
+      margin: 10px 0;
+      cursor: pointer;
+    }
+    .file-area {
+      flex: 1;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 100px);
+      gap: 15px;
+      align-content: flex-start;
+    }
+    .file {
+      text-align: center;
+      cursor: pointer;
+    }
+    .file img {
+      width: 80px;
+      height: 80px;
       object-fit: cover;
       border-radius: 8px;
-      margin-right: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="background" id="background"></div>
 
-  <!-- Login -->
-  <div id="loginPage" class="window" style="display:block;">
-    <h2>Vision Login</h2>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required><br>
-      <input type="password" id="password" placeholder="Password" required><br>
-      <button type="submit">Login</button>
-    </form>
+  <!-- Top Menu Bar -->
+  <div class="menu-bar">
+    <div class="menu-left">
+      <span onclick="openFinder()">Finder</span>
+      <span>File</span>
+      <span>Edit</span>
+      <span>View</span>
+    </div>
+    <div class="menu-right" id="time"></div>
   </div>
 
-  <!-- Home -->
-  <div id="homeWindow" class="window">
-    <h2>Vision Home</h2>
-    <p>Welcome <span id="profileName"></span>!</p>
-    <p>Your account details can be modified in ⚙️ Settings.</p>
-  </div>
-
-  <!-- Documents -->
-  <div id="docsWindow" class="window">
-    <h2>📂 Documents</h2>
-    <input type="file" id="docUpload" multiple>
-    <div id="docList" class="file-list"></div>
-  </div>
-
-  <!-- Photos -->
-  <div id="photosWindow" class="window">
-    <h2>🖼️ Photos</h2>
-    <input type="file" id="photoUpload" accept="image/*" multiple>
-    <div id="photoList" class="file-list"></div>
-  </div>
-
-  <!-- Settings -->
-  <div id="settingsWindow" class="window">
-    <h2>⚙️ Settings</h2>
-    <p><b>Profile Name:</b> <input type="text" id="nameInput"></p>
-    <p><b>Change Background:</b></p>
-    <input type="file" id="bgUpload" accept="image/*">
-    <button onclick="resetBackground()">Reset Background</button>
-  </div>
-
-  <!-- Reports -->
-  <div id="reportsWindow" class="window">
-    <h2>📊 Reports</h2>
-    <p>Total Logins: <span id="loginCount">0</span></p>
-  </div>
-
-  <!-- User Management -->
-  <div id="userMgmtWindow" class="window">
-    <h2>👥 User Management</h2>
-    <p>All registered users will be listed here (Admin only).</p>
-    <ul id="userList"></ul>
+  <!-- Finder Window -->
+  <div class="finder" id="finderWindow">
+    <div class="finder-header">
+      <span>Finder - Vision</span>
+      <span onclick="closeFinder()" style="cursor:pointer;">✖</span>
+    </div>
+    <div class="finder-body">
+      <div class="sidebar">
+        <div onclick="showFolder('home')">🏠 Home</div>
+        <div onclick="showFolder('docs')">📂 Documents</div>
+        <div onclick="showFolder('photos')">🖼️ Photos</div>
+        <div onclick="showFolder('reports')">📊 Reports</div>
+        <div onclick="showFolder('settings')">⚙️ Settings</div>
+      </div>
+      <div class="file-area" id="fileArea">
+        <!-- Files will show here -->
+      </div>
+    </div>
   </div>
 
   <!-- Dock -->
   <div class="dock">
-    <div class="dock-icon" onclick="openWindow('homeWindow')">🏠</div>
-    <div class="dock-icon" onclick="openWindow('docsWindow')">📂</div>
-    <div class="dock-icon" onclick="openWindow('photosWindow')">🖼️</div>
-    <div class="dock-icon" onclick="openWindow('reportsWindow')">📊</div>
-    <div class="dock-icon" onclick="openWindow('settingsWindow')">⚙️</div>
-    <div class="dock-icon admin-only" onclick="openWindow('userMgmtWindow')">👥</div>
+    <div class="dock-icon" onclick="openFinder()">🗂️</div>
+    <div class="dock-icon">🌐</div>
+    <div class="dock-icon">💬</div>
+    <div class="dock-icon">⚙️</div>
   </div>
 
   <script>
-    let loginCount = 0;
-    let users = [];
+    // Show current time
+    function updateTime() {
+      document.getElementById("time").textContent = new Date().toLocaleTimeString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
 
-    const windows = document.querySelectorAll('.window');
-    function openWindow(id) {
-      windows.forEach(w => w.style.display = "none");
-      document.getElementById(id).style.display = "block";
+    // Open/close Finder
+    function openFinder() {
+      document.getElementById("finderWindow").style.display = "block";
+    }
+    function closeFinder() {
+      document.getElementById("finderWindow").style.display = "none";
     }
 
-    // Login
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      let user = document.getElementById("username").value;
-      let pass = document.getElementById("password").value;
+    // Folder views
+    function showFolder(folder) {
+      const fileArea = document.getElementById("fileArea");
+      fileArea.innerHTML = "";
 
-      if((user === "arkandu.khan" && pass === "Arkandu@1998") || user !== "") {
-        loginCount++;
-        document.getElementById("loginCount").innerText = loginCount;
-        document.getElementById("profileName").innerText = user;
-        users.push(user);
-        document.getElementById("userList").innerHTML = users.map(u => `<li>${u}</li>`).join("");
-        
-        windows.forEach(w => w.style.display = "none");
-        document.getElementById("homeWindow").style.display = "block";
-      } else {
-        alert("Invalid credentials");
+      if (folder === "home") {
+        fileArea.innerHTML = `<div class="file">🏠 <br> Welcome Home</div>`;
       }
-    });
-
-    // Docs Upload
-    document.getElementById("docUpload").addEventListener("change", function(e) {
-      let list = document.getElementById("docList");
-      [...e.target.files].forEach(file => {
-        let div = document.createElement("div");
-        div.className = "file-item";
-        div.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" />
-                         <span>${file.name}</span>`;
-        list.appendChild(div);
-      });
-    });
-
-    // Photos Upload
-    document.getElementById("photoUpload").addEventListener("change", function(e) {
-      let list = document.getElementById("photoList");
-      [...e.target.files].forEach(file => {
-        let reader = new FileReader();
-        reader.onload = function(ev) {
-          let div = document.createElement("div");
-          div.className = "file-item";
-          div.innerHTML = `<img src="${ev.target.result}" />
-                           <span>${file.name}</span>`;
-          list.appendChild(div);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-
-    // Background change
-    document.getElementById("bgUpload").addEventListener("change", function(e) {
-      let file = e.target.files[0];
-      if(file) {
-        let reader = new FileReader();
-        reader.onload = function(ev) {
-          document.getElementById("background").style.background = `url('${ev.target.result}') no-repeat center center/cover`;
-        };
-        reader.readAsDataURL(file);
+      if (folder === "docs") {
+        fileArea.innerHTML = `
+          <div class="file"><img src="https://img.icons8.com/fluency/100/document.png"/><br>Doc1</div>
+          <div class="file"><img src="https://img.icons8.com/fluency/100/document.png"/><br>Doc2</div>`;
       }
-    });
-
-    function resetBackground() {
-      document.getElementById("background").style.background = 
-        "url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover";
+      if (folder === "photos") {
+        fileArea.innerHTML = `
+          <div class="file"><img src="https://picsum.photos/100"/><br>Photo1</div>
+          <div class="file"><img src="https://picsum.photos/101"/><br>Photo2</div>`;
+      }
+      if (folder === "reports") {
+        fileArea.innerHTML = `<div class="file">📊 Login Usage Report</div>`;
+      }
+      if (folder === "settings") {
+        fileArea.innerHTML = `<div class="file">⚙️ Change Wallpaper</div>`;
+      }
     }
   </script>
 </body>
