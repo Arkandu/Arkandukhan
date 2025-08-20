@@ -2,79 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Vision Pro File Manager</title>
+  <title>Apple Vision Pro Style Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Background -->
-  <div class="background"></div>
-
   <!-- Login Screen -->
-  <div id="loginScreen" class="window" style="display:block;">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username"><br>
-    <input type="password" id="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
-  </div>
-
-  <!-- Home Window -->
-  <div id="homeWindow" class="window">
-    <h2>🏠 Home</h2>
-    <div id="profileDetails">
-      <p><strong>Name:</strong> <span id="profileName">User</span></p>
-      <p><strong>Email:</strong> <span id="profileEmail">user@example.com</span></p>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-box glass">
+      <h2>Login</h2>
+      <input type="text" id="loginUsername" placeholder="Username">
+      <input type="password" id="loginPassword" placeholder="Password">
+      <button onclick="login()">Login</button>
     </div>
   </div>
 
-  <!-- Documents -->
-  <div id="docsWindow" class="window">
-    <h2>📂 Documents</h2>
-    <div class="upload-box" onclick="document.getElementById('docUpload').click()">Upload Documents</div>
-    <input type="file" id="docUpload" multiple hidden onchange="handleFileUpload(event,'doc')">
-    <ul id="docList"></ul>
-  </div>
+  <!-- App Container -->
+  <div id="appContainer" style="display:none;">
+    <!-- Windows -->
+    <div class="window glass" id="homeWindow">
+      <h2>🏠 Home</h2>
+      <div id="homeDetails">
+        <p><strong>Name:</strong> <span id="profileName">Guest</span></p>
+        <p><strong>Email:</strong> <span id="profileEmail">Not set</span></p>
+        <p><strong>Role:</strong> <span id="profileRole">User</span></p>
+      </div>
+    </div>
 
-  <!-- Photos -->
-  <div id="photosWindow" class="window">
-    <h2>🖼️ Photos</h2>
-    <div class="upload-box" onclick="document.getElementById('photoUpload').click()">Upload Photos</div>
-    <input type="file" id="photoUpload" multiple hidden accept="image/*" onchange="handleFileUpload(event,'photo')">
-    <div id="photoGallery"></div>
-  </div>
+    <div class="window glass" id="documentsWindow">
+      <h2>📂 Documents</h2>
+      <input type="file" id="docUpload" multiple>
+      <div id="docList"></div>
+    </div>
 
-  <!-- Reports -->
-  <div id="reportsWindow" class="window">
-    <h2>📊 Reports</h2>
-    <p>Total logins: <span id="loginCount">0</span></p>
-    <p>Files uploaded: <span id="fileCount">0</span></p>
-  </div>
+    <div class="window glass" id="photosWindow">
+      <h2>🖼️ Photos</h2>
+      <input type="file" id="photoUpload" accept="image/*" multiple>
+      <div id="photoList" class="thumb-grid"></div>
+    </div>
 
-  <!-- Settings -->
-  <div id="settingsWindow" class="window">
-    <h2>⚙️ Settings</h2>
-    <label>Name: <input type="text" id="settingsName"></label><br>
-    <label>Email: <input type="email" id="settingsEmail"></label><br>
-    <button onclick="saveSettings()">Save</button>
-  </div>
+    <div class="window glass" id="reportsWindow">
+      <h2>📊 Reports</h2>
+      <p>Total Logins: <span id="loginCount">0</span></p>
+    </div>
 
-  <!-- User Management (Admin Only) -->
-  <div id="usersWindow" class="window">
-    <h2>👥 User Management</h2>
-    <ul id="userList"></ul>
-  </div>
+    <div class="window glass" id="usersWindow">
+      <h2>👥 User Management (Admin Only)</h2>
+      <ul id="userList"></ul>
+    </div>
 
-  <!-- Dock -->
-  <div class="dock">
-    <div class="dock-icon" onclick="openWindow('homeWindow')">🏠</div>
-    <div class="dock-icon" onclick="openWindow('docsWindow')">📂</div>
-    <div class="dock-icon" onclick="openWindow('photosWindow')">🖼️</div>
-    <div class="dock-icon" onclick="openWindow('reportsWindow')">📊</div>
-    <div class="dock-icon" onclick="openWindow('settingsWindow')">⚙️</div>
-    <div class="dock-icon admin-only" onclick="openWindow('usersWindow')" style="display:none;">👥</div>
-  </div>
+    <div class="window glass" id="settingsWindow">
+      <h2>⚙️ Settings</h2>
+      <label>Name: <input type="text" id="settingName"></label><br>
+      <label>Email: <input type="email" id="settingEmail"></label><br>
+      <button onclick="saveSettings()">Save</button>
+    </div>
 
-  <!-- Context Menu -->
-  <div id="contextMenu" class="context-menu"></div>
+    <!-- Dock Navigation -->
+    <div class="dock" id="dock">
+      <div class="dock-icon" onclick="openWindow('home')">🏠</div>
+      <div class="dock-icon" onclick="openWindow('documents')">📂</div>
+      <div class="dock-icon" onclick="openWindow('photos')">🖼️</div>
+      <div class="dock-icon" onclick="openWindow('reports')">📊</div>
+      <div class="dock-icon admin-only" onclick="openWindow('users')">👥</div>
+      <div class="dock-icon" onclick="openWindow('settings')">⚙️</div>
+      <div class="dock-icon" onclick="logout()">🚪</div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
