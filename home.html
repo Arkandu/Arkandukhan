@@ -2,64 +2,115 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - Glass UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Style Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <div class="navbar">
-    <h2>Vision Dashboard</h2>
-    <button onclick="logout()" class="logout">Logout</button>
+
+  <!-- Background -->
+  <div class="background"></div>
+
+  <!-- Floating Windows (hidden until clicked) -->
+  <div id="documents" class="window">
+    <h2>📂 Documents</h2>
+    <input type="file" multiple>
+    <ul id="docList"></ul>
   </div>
 
-  <!-- Profile -->
-  <div class="profile">
-    <img src="https://i.pravatar.cc/100" alt="User">
-    <h3 id="welcomeName">Welcome User</h3>
+  <div id="photos" class="window">
+    <h2>🖼️ Photos</h2>
+    <input type="file" accept="image/*" multiple onchange="previewPhotos(event)">
+    <div id="photoGallery"></div>
   </div>
 
-  <!-- Main Content Sections -->
-  <div id="content">
-    <section id="documents" class="tab active">
-      <h2>📂 Documents</h2>
-      <input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt" multiple>
-      <ul id="docList"></ul>
-    </section>
-
-    <section id="photos" class="tab">
-      <h2>🖼️ Photos</h2>
-      <input type="file" id="photoUpload" accept="image/*" multiple>
-      <div id="photoGallery"></div>
-    </section>
-
-    <section id="settings" class="tab">
-      <h2>⚙️ Settings</h2>
-      <label>Change Username:</label>
-      <input type="text" id="usernameInput" placeholder="Enter new username">
-      <button onclick="updateUsername()">Save</button>
-    </section>
-
-    <section id="reports" class="tab">
-      <h2>📊 Reports</h2>
-      <p id="reportData">Total logins: 0<br>Documents uploaded: 0<br>Photos uploaded: 0</p>
-    </section>
-
-    <section id="users" class="tab">
-      <h2>👥 User Management</h2>
-      <p>Admin only: All registered users will show here.</p>
-      <ul id="userList"></ul>
-    </section>
+  <div id="settings" class="window">
+    <h2>⚙️ Settings</h2>
+    <form>
+      <label>Username:</label>
+      <input type="text" value="Arkandu"><br><br>
+      <label>Password:</label>
+      <input type="password" placeholder="••••••"><br><br>
+      <button type="submit">Save</button>
+    </form>
   </div>
 
-  <!-- iOS-style Bottom Nav -->
-  <div class="bottom-nav">
-    <button onclick="showTab('documents')">📂</button>
-    <button onclick="showTab('photos')">🖼️</button>
-    <button onclick="showTab('settings')">⚙️</button>
-    <button onclick="showTab('reports')">📊</button>
-    <button onclick="showTab('users')" id="adminTab" class="hidden">👥</button>
+  <div id="reports" class="window">
+    <h2>📊 Reports</h2>
+    <p>Total Logins: <span id="loginCount">15</span></p>
+    <p>Total Uploads: <span id="uploadCount">8</span></p>
+    <canvas id="reportChart" width="400" height="200"></canvas>
   </div>
 
-  <script src="script.js"></script>
+  <div id="users" class="window">
+    <h2>👥 User Management</h2>
+    <ul id="userList">
+      <li>Admin (You)</li>
+      <li>User1</li>
+      <li>User2</li>
+      <li>User3</li>
+    </ul>
+  </div>
+
+  <!-- Bottom Dock -->
+  <div class="dock">
+    <div class="dock-icon" onclick="openWindow('documents')">📂</div>
+    <div class="dock-icon" onclick="openWindow('photos')">🖼️</div>
+    <div class="dock-icon" onclick="openWindow('settings')">⚙️</div>
+    <div class="dock-icon" onclick="openWindow('reports')">📊</div>
+    <div class="dock-icon admin-only" onclick="openWindow('users')">👥</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Open window function
+    function openWindow(id) {
+      document.querySelectorAll('.window').forEach(win => win.style.display = 'none');
+      document.getElementById(id).style.display = 'block';
+    }
+
+    // Example: Hide admin-only if not admin
+    const isAdmin = true; // Change to false to test non-admin
+    if (!isAdmin) {
+      document.querySelector(".admin-only").style.display = "none";
+    }
+
+    // File uploads for documents
+    document.querySelector("#documents input").addEventListener("change", (e) => {
+      const list = document.getElementById("docList");
+      list.innerHTML = "";
+      Array.from(e.target.files).forEach(file => {
+        const li = document.createElement("li");
+        li.textContent = file.name;
+        list.appendChild(li);
+      });
+    });
+
+    // Photo preview
+    function previewPhotos(event) {
+      const gallery = document.getElementById("photoGallery");
+      gallery.innerHTML = "";
+      Array.from(event.target.files).forEach(file => {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.className = "preview-img";
+        gallery.appendChild(img);
+      });
+    }
+
+    // Reports chart (example data)
+    const ctx = document.getElementById('reportChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Logins', 'Uploads'],
+        datasets: [{
+          label: 'Usage',
+          data: [15, 8],
+          backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)']
+        }]
+      }
+    });
+  </script>
 </body>
 </html>
