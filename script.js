@@ -1,75 +1,92 @@
-let loginCounter = 0;
-let users = [
-  { username: "arkandu.khan", password: "Arkandu@1998", role: "Admin" }
-];
-let currentUser = null;
+let loginCount = 0;
+let users = [];
 
-function login() {
-  const user = document.getElementById("loginUsername").value;
-  const pass = document.getElementById("loginPassword").value;
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
 
-  const found = users.find(u => u.username === user && u.password === pass);
-  if (found) {
-    currentUser = found;
-    loginCounter++;
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("appContainer").style.display = "block";
-    document.getElementById("loginCount").innerText = loginCounter;
-    document.getElementById("profileName").innerText = found.username;
-    document.getElementById("profileEmail").innerText = "example@mail.com";
-    document.getElementById("profileRole").innerText = found.role;
-
-    if (found.role !== "Admin") {
-      document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
-    }
+  if (user === "arkandu.khan" && pass === "Arkandu@1998") {
+    alert("Admin Login Success");
+    document.querySelectorAll(".admin-only").forEach(el => el.style.display = "block");
   } else {
-    alert("Invalid credentials!");
+    alert("User Login Success");
+    document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
   }
-}
 
-function logout() {
-  document.getElementById("appContainer").style.display = "none";
-  document.getElementById("loginScreen").style.display = "flex";
-  document.getElementById("loginUsername").value = "";
-  document.getElementById("loginPassword").value = "";
-  currentUser = null;
-}
+  document.getElementById("loginPage").style.display = "none";
+  openWindow("homeWindow");
+  loginCount++;
+  document.getElementById("loginCount").textContent = loginCount;
 
-function openWindow(name) {
-  document.querySelectorAll(".window").forEach(w => w.style.display = "none");
-  document.getElementById(name + "Window").style.display = "block";
-}
-
-/* Save Settings */
-function saveSettings() {
-  const name = document.getElementById("settingName").value;
-  const email = document.getElementById("settingEmail").value;
-  if (name) document.getElementById("profileName").innerText = name;
-  if (email) document.getElementById("profileEmail").innerText = email;
-  alert("Settings updated!");
-}
-
-/* File Uploads */
-document.getElementById("docUpload").addEventListener("change", function(e) {
-  const list = document.getElementById("docList");
-  list.innerHTML = "";
-  Array.from(e.target.files).forEach(file => {
-    const div = document.createElement("div");
-    div.innerText = `${file.name} (${Math.round(file.size/1024)} KB)`;
-    list.appendChild(div);
-  });
+  users.push({ name: user, email: user + "@example.com" });
+  updateUserList();
 });
 
-document.getElementById("photoUpload").addEventListener("change", function(e) {
-  const list = document.getElementById("photoList");
+function openWindow(id) {
+  document.querySelectorAll(".window").forEach(w => w.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+
+function updateUserList() {
+  const list = document.getElementById("userList");
   list.innerHTML = "";
-  Array.from(e.target.files).forEach(file => {
+  users.forEach(u => {
+    const li = document.createElement("li");
+    li.textContent = `${u.name} (${u.email})`;
+    list.appendChild(li);
+  });
+}
+
+// Profile settings
+document.getElementById("nameInput").addEventListener("input", e => {
+  document.getElementById("profileName").textContent = e.target.value || "User";
+});
+document.getElementById("emailInput").addEventListener("input", e => {
+  document.getElementById("profileEmail").textContent = e.target.value || "user@example.com";
+});
+document.getElementById("profilePicUpload").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (file) {
     const reader = new FileReader();
-    reader.onload = function(ev) {
+    reader.onload = () => document.getElementById("profilePic").src = reader.result;
+    reader.readAsDataURL(file);
+  }
+});
+
+// Background change
+document.getElementById("bgUpload").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => document.getElementById("background").style.backgroundImage = `url(${reader.result})`;
+    reader.readAsDataURL(file);
+  }
+});
+function resetBackground() {
+  document.getElementById("background").style.backgroundImage = "url('https://picsum.photos/1920/1080?blur=5')";
+}
+
+// Documents
+document.getElementById("docUpload").addEventListener("change", e => {
+  const list = document.getElementById("docList");
+  for (let file of e.target.files) {
+    const li = document.createElement("li");
+    li.textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    list.appendChild(li);
+  }
+});
+
+// Photos
+document.getElementById("photoUpload").addEventListener("change", e => {
+  const gallery = document.getElementById("photoGallery");
+  for (let file of e.target.files) {
+    const reader = new FileReader();
+    reader.onload = () => {
       const img = document.createElement("img");
-      img.src = ev.target.result;
-      list.appendChild(img);
+      img.src = reader.result;
+      gallery.appendChild(img);
     };
     reader.readAsDataURL(file);
-  });
+  }
 });
