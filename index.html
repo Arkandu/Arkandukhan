@@ -2,69 +2,167 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Vision</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Vision Login</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Default background */
+    .background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+      z-index: -1;
+      transition: background 0.5s ease-in-out;
+    }
+
+    .window {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 420px;
+      min-height: 250px;
+      padding: 20px;
+      border-radius: 20px;
+      backdrop-filter: blur(15px) saturate(180%);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      color: #fff;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 8px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      background: #007AFF;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #005BBB; }
+
+    .dock {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      padding: 12px 25px;
+      border-radius: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+      gap: 20px;
+    }
+
+    .dock-icon {
+      font-size: 22px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      color: white;
+    }
+    .dock-icon:hover { transform: scale(1.2); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -45%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+
+    .file-list {
+      text-align: left;
+      margin-top: 15px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 5px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .file-item img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
   <div class="background" id="background"></div>
 
-  <!-- LOGIN PAGE -->
+  <!-- Login -->
   <div id="loginPage" class="window" style="display:block;">
     <h2>Vision Login</h2>
     <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required><br><br>
-      <input type="password" id="password" placeholder="Password" required><br><br>
+      <input type="text" id="username" placeholder="Username" required><br>
+      <input type="password" id="password" placeholder="Password" required><br>
       <button type="submit">Login</button>
     </form>
   </div>
 
-  <!-- HOME -->
+  <!-- Home -->
   <div id="homeWindow" class="window">
-    <h2>🏠 Home</h2>
-    <div class="profile-card">
-      <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile">
-      <h3 id="profileName">User</h3>
-      <p id="profileEmail">user@example.com</p>
-    </div>
+    <h2>Vision Home</h2>
+    <p>Welcome <span id="profileName"></span>!</p>
+    <p>Your account details can be modified in ⚙️ Settings.</p>
   </div>
 
-  <!-- DOCUMENTS -->
+  <!-- Documents -->
   <div id="docsWindow" class="window">
     <h2>📂 Documents</h2>
     <input type="file" id="docUpload" multiple>
-    <ul id="docList"></ul>
+    <div id="docList" class="file-list"></div>
   </div>
 
-  <!-- PHOTOS -->
+  <!-- Photos -->
   <div id="photosWindow" class="window">
     <h2>🖼️ Photos</h2>
     <input type="file" id="photoUpload" accept="image/*" multiple>
-    <div id="photoGallery" class="gallery"></div>
+    <div id="photoList" class="file-list"></div>
   </div>
 
-  <!-- REPORTS -->
+  <!-- Settings -->
+  <div id="settingsWindow" class="window">
+    <h2>⚙️ Settings</h2>
+    <p><b>Profile Name:</b> <input type="text" id="nameInput"></p>
+    <p><b>Change Background:</b></p>
+    <input type="file" id="bgUpload" accept="image/*">
+    <button onclick="resetBackground()">Reset Background</button>
+  </div>
+
+  <!-- Reports -->
   <div id="reportsWindow" class="window">
     <h2>📊 Reports</h2>
     <p>Total Logins: <span id="loginCount">0</span></p>
   </div>
 
-  <!-- SETTINGS -->
-  <div id="settingsWindow" class="window">
-    <h2>⚙️ Settings</h2>
-    <p><b>Profile Name:</b> <input type="text" id="nameInput"></p>
-    <p><b>Email:</b> <input type="text" id="emailInput"></p>
-    <p><b>Change Profile Picture:</b> <input type="file" id="profilePicUpload" accept="image/*"></p>
-    <p><b>Change Background:</b> <input type="file" id="bgUpload" accept="image/*"></p>
-    <button onclick="resetBackground()">Reset Background</button>
-  </div>
-
-  <!-- USER MANAGEMENT -->
+  <!-- User Management -->
   <div id="userMgmtWindow" class="window">
     <h2>👥 User Management</h2>
+    <p>All registered users will be listed here (Admin only).</p>
     <ul id="userList"></ul>
   </div>
 
-  <!-- DOCK -->
+  <!-- Dock -->
   <div class="dock">
     <div class="dock-icon" onclick="openWindow('homeWindow')">🏠</div>
     <div class="dock-icon" onclick="openWindow('docsWindow')">📂</div>
@@ -74,6 +172,80 @@
     <div class="dock-icon admin-only" onclick="openWindow('userMgmtWindow')">👥</div>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    let loginCount = 0;
+    let users = [];
+
+    const windows = document.querySelectorAll('.window');
+    function openWindow(id) {
+      windows.forEach(w => w.style.display = "none");
+      document.getElementById(id).style.display = "block";
+    }
+
+    // Login
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      let user = document.getElementById("username").value;
+      let pass = document.getElementById("password").value;
+
+      if((user === "arkandu.khan" && pass === "Arkandu@1998") || user !== "") {
+        loginCount++;
+        document.getElementById("loginCount").innerText = loginCount;
+        document.getElementById("profileName").innerText = user;
+        users.push(user);
+        document.getElementById("userList").innerHTML = users.map(u => `<li>${u}</li>`).join("");
+        
+        windows.forEach(w => w.style.display = "none");
+        document.getElementById("homeWindow").style.display = "block";
+      } else {
+        alert("Invalid credentials");
+      }
+    });
+
+    // Docs Upload
+    document.getElementById("docUpload").addEventListener("change", function(e) {
+      let list = document.getElementById("docList");
+      [...e.target.files].forEach(file => {
+        let div = document.createElement("div");
+        div.className = "file-item";
+        div.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" />
+                         <span>${file.name}</span>`;
+        list.appendChild(div);
+      });
+    });
+
+    // Photos Upload
+    document.getElementById("photoUpload").addEventListener("change", function(e) {
+      let list = document.getElementById("photoList");
+      [...e.target.files].forEach(file => {
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+          let div = document.createElement("div");
+          div.className = "file-item";
+          div.innerHTML = `<img src="${ev.target.result}" />
+                           <span>${file.name}</span>`;
+          list.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Background change
+    document.getElementById("bgUpload").addEventListener("change", function(e) {
+      let file = e.target.files[0];
+      if(file) {
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+          document.getElementById("background").style.background = `url('${ev.target.result}') no-repeat center center/cover`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function resetBackground() {
+      document.getElementById("background").style.background = 
+        "url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover";
+    }
+  </script>
 </body>
 </html>
