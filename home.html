@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url("https://picsum.photos/1600/900?blur=3") no-repeat center center/cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: rgba(22, 27, 34, 0.6);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+      color: #fff;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 12px 20px;
+      margin: 10px;
+      background: #238636;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .btn:hover {
+      background: #2ea043;
+    }
+    .logout {
+      margin-top: 20px;
+      background: #d73a49;
+    }
+    .logout:hover {
+      background: #f85149;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="welcome"></h1>
+    <a class="btn" href="https://www.facebook.com" target="_blank">Go to Facebook</a>
+    <a class="btn" href="https://www.instagram.com" target="_blank">Go to Instagram</a>
+    <br>
+    <button class="btn logout" onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    const user = localStorage.getItem("loggedInUser");
+    if (!user) {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("welcome").innerText = "Welcome, " + user + "!";
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
