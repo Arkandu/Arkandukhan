@@ -3,185 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: url("https://picsum.photos/1920/1080?blur=3") no-repeat center center/cover;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      margin: 0;
-      padding: 40px;
-      color: white;
-    }
-
-    header {
-      width: 100%;
-      max-width: 1200px;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    header h1 {
-      font-size: 2rem;
-      margin: 0;
-      color: #fff;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      width: 100%;
-      max-width: 1200px;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 30px;
-      text-align: center;
-      transition: transform 0.3s ease, background 0.3s ease;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    }
-
-    .card:hover {
-      transform: translateY(-8px) scale(1.02);
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .card img {
-      width: 80px;
-      margin-bottom: 15px;
-    }
-
-    .card h2 {
-      margin: 10px 0;
-      font-size: 1.3rem;
-    }
-
-    .card a, .card button {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #238636;
-      color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-    }
-
-    .card a:hover, .card button:hover {
-      background: #2ea043;
-    }
-
-    .logout {
-      margin-top: 40px;
-      padding: 12px 25px;
-      background: #d73a49;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .logout:hover {
-      background: #f85149;
-    }
-  </style>
+  <title>Home Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1 id="welcome"></h1>
-  </header>
+  <div class="navbar">
+    <h2>🚀 My Drive</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
 
-  <div class="grid" id="dashboard"></div>
+  <div class="profile">
+    <img src="https://i.pravatar.cc/100" alt="User Avatar">
+    <h3 id="welcomeText"></h3>
+  </div>
 
-  <button class="logout" onclick="logout()">Logout</button>
+  <div class="container">
+    <div class="card">📂 Documents</div>
+    <div class="card">🖼️ Photos</div>
+    <div class="card">⚙️ Settings</div>
+    <div class="card">🏠 Home</div>
+    <div class="card">📊 Reports</div>
+    <div class="card admin-only">👥 User Management</div>
+  </div>
 
   <script>
-    const user = localStorage.getItem("loggedInUser");
+    let user = localStorage.getItem("loggedInUser");
     if (!user) {
       window.location.href = "index.html";
     } else {
-      document.getElementById("welcome").innerText = "👋 Welcome, " + user + "!";
+      document.getElementById("welcomeText").innerText = "Welcome, " + user;
     }
 
-    const dashboard = document.getElementById("dashboard");
-
-    // Common features
-    const features = [
-      {
-        name: "Facebook",
-        img: "https://cdn-icons-png.flaticon.com/512/5968/5968764.png",
-        desc: "Connect with friends and the world around you.",
-        link: "https://www.facebook.com"
-      },
-      {
-        name: "Instagram",
-        img: "https://cdn-icons-png.flaticon.com/512/2111/2111463.png",
-        desc: "Share your moments and explore the world visually.",
-        link: "https://www.instagram.com"
-      },
-      {
-        name: "Profile",
-        img: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-        desc: "View your account details.",
-        action: () => alert("👤 Profile: " + user + "\nEmail: " + user + "@example.com")
-      },
-      {
-        name: "Settings",
-        img: "https://cdn-icons-png.flaticon.com/512/3524/3524659.png",
-        desc: "Manage your account preferences.",
-        action: () => alert("⚙️ Settings feature coming soon!")
-      }
-    ];
-
-    // Extra admin-only feature
-    const adminFeature = {
-      name: "Manage Users",
-      img: "https://cdn-icons-png.flaticon.com/512/1077/1077114.png",
-      desc: "Admin-only: Manage registered users.",
-      action: () => {
-        let users = JSON.parse(localStorage.getItem("users")) || {};
-        let userList = Object.keys(users).join(", ") || "No users registered yet.";
-        alert("👥 Registered Users: " + userList);
-      }
-    };
-
-    // Render cards
-    features.forEach(f => {
-      let card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${f.img}" alt="${f.name}">
-        <h2>${f.name}</h2>
-        <p>${f.desc}</p>
-        ${f.link ? `<a href="${f.link}" target="_blank">Open</a>` : `<button onclick="(${f.action})()">Open</button>`}
-      `;
-      dashboard.appendChild(card);
-    });
-
-    // If admin → add extra card
-    if (user === "Admin Arkandu") {
-      let card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${adminFeature.img}" alt="${adminFeature.name}">
-        <h2>${adminFeature.name}</h2>
-        <p>${adminFeature.desc}</p>
-        <button onclick="(${adminFeature.action})()">Open</button>
-      `;
-      dashboard.appendChild(card);
+    // Show Admin-only card if logged in as admin
+    if (user !== "arkandu.khan") {
+      document.querySelector(".admin-only").style.display = "none";
     }
 
     function logout() {
