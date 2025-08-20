@@ -1,159 +1,461 @@
-<!DOCTYPE html>
+<!-- Save as: home.html (replace existing) -->
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Vision Platform</title>
-  <style>
-    /* Background */
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: url("https://images.unsplash.com/photo-1503264116251-35a269479413") no-repeat center center/cover;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Vision Drive — Home (fixed background)</title>
 
-    /* Glass effect */
-    .glass {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 20px;
-      padding: 40px;
-      width: 350px;
-      text-align: center;
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      animation: fadeIn 1s ease;
-    }
+<style>
+  /* ---------- Base reset ---------- */
+  * { box-sizing: border-box; margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  html,body { height:100%; background: #111; color: #fff; }
 
-    h2 {
-      color: #fff;
-      margin-bottom: 20px;
-    }
+  /* ---------- Background: try local file then fallback remote ---------- */
+  .background {
+    position: fixed;
+    inset: 0;
+    z-index: 0; /* behind everything */
+    background-image:
+      url('background.png'), /* local preferred (user-supplied) */
+      url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=1920&q=80'); /* fallback */
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    filter: none;
+    transition: opacity .35s ease;
+  }
 
-    input {
-      width: 90%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      background: rgba(255,255,255,0.2);
-      color: white;
-    }
+  /* If something else overlays white, make sure everything else is transparent */
+  .app {
+    position: relative;
+    z-index: 2; /* above background */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-    input::placeholder {
-      color: #ddd;
-    }
+  /* ---------- Topbar ---------- */
+  .topbar {
+    margin-top: 18px;
+    width: calc(100% - 120px);
+    max-width: 1200px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 12px 18px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+  .topbar .title { font-weight:600; font-size:18px; }
+  .topbar .right { display:flex; gap:10px; align-items:center; }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+  /* ---------- Floating window (centered) ---------- */
+  .window {
+    display: none;
+    position: absolute;
+    top: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 820px;
+    max-width: calc(100% - 80px);
+    max-height: calc(100% - 220px);
+    overflow:auto;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    z-index: 3;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+  }
+  .window h2 { font-size:20px; margin-bottom:12px; }
 
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(0, 114, 255, 0.7);
-    }
+  /* ---------- Inputs & lists ---------- */
+  input[type="file"] { width:100%; padding:8px; background: rgba(0,0,0,0.15); border-radius:8px; color:#fff; }
+  input, select, button { background: rgba(255,255,255,0.04); color: #fff; border:1px solid rgba(255,255,255,0.06); padding:8px; border-radius:8px; }
+  ul { list-style:none; padding-left:0; }
+  #docList li { padding:8px 10px; margin-bottom:8px; background: rgba(255,255,255,0.03); border-radius:8px; display:flex; align-items:center; gap:10px; }
 
-    .link {
-      margin-top: 15px;
-    }
+  /* ---------- Photo gallery ---------- */
+  .photo-gallery { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .preview-img { width:120px; height:90px; object-fit:cover; border-radius:10px; border:2px solid rgba(255,255,255,0.08); box-shadow: 0 6px 18px rgba(0,0,0,0.35); cursor:pointer; }
 
-    .link a {
-      color: #fff;
-      text-decoration: none;
-      font-size: 14px;
-    }
+  /* ---------- Dock ---------- */
+  .dock {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    display:flex;
+    gap:18px;
+    padding:10px 18px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,0.12);
+    z-index: 5;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  }
+  .dock-item { font-size:28px; padding:6px; cursor:pointer; transition: transform .15s ease; }
+  .dock-item:hover { transform: translateY(-8px) scale(1.2); }
 
-    .hidden {
-      display: none;
-    }
+  /* ---------- viewer modal ---------- */
+  .viewer-modal { position: fixed; inset:0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); z-index: 10; }
+  .viewer-inner { width: 85%; max-width:960px; background: #fff; border-radius:12px; padding:10px; }
+  .viewer-close { float:right; margin-bottom:8px; padding:6px 10px; border-radius:8px; cursor:pointer; }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px);}
-      to { opacity: 1; transform: translateY(0);}
-    }
-  </style>
+  /* small helpers */
+  .hidden { display:none !important; }
+  .btn { background: rgba(255,255,255,0.08); color:#fff; border:none; padding:8px 12px; border-radius:10px; cursor:pointer; }
+</style>
 </head>
 <body>
-  <div class="glass" id="loginCard">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <button onclick="login()">Login</button>
-    <div class="link">
-      <a href="#" onclick="showRegister()">Register New User</a>
+  <div class="background" id="backgroundDiv" aria-hidden="true"></div>
+
+  <div class="app">
+    <div class="topbar" role="banner">
+      <div class="title">🍏 Vision Drive</div>
+      <div class="right">
+        <div id="userLabel">--</div>
+        <button class="btn" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div id="documents" class="window" aria-hidden="true">
+      <h2>📂 Documents</h2>
+      <input id="docInput" type="file" multiple>
+      <div style="margin-top:10px">
+        <button id="clearDocsBtn" class="btn">Clear All Documents</button>
+      </div>
+      <ul id="docList" style="margin-top:14px"></ul>
+    </div>
+
+    <!-- Photos -->
+    <div id="photos" class="window" aria-hidden="true">
+      <h2>🖼️ Photos</h2>
+      <input id="photoInput" type="file" accept="image/*" multiple>
+      <div style="margin-top:10px">
+        <button id="clearPhotosBtn" class="btn">Clear All Photos</button>
+      </div>
+      <div id="photoGallery" class="photo-gallery"></div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings" class="window" aria-hidden="true">
+      <h2>⚙️ Settings</h2>
+      <label>Display name</label>
+      <input id="displayName" placeholder="Enter display name">
+      <div style="height:12px"></div>
+      <button id="saveSettings" class="btn">Save Settings</button>
+    </div>
+
+    <!-- Reports -->
+    <div id="reports" class="window" aria-hidden="true">
+      <h2>📊 Reports</h2>
+      <p>Total logins: <span id="reportLogins">0</span></p>
+      <p>Documents uploaded: <span id="reportDocs">0</span></p>
+      <p>Photos uploaded: <span id="reportPhotos">0</span></p>
+      <canvas id="reportChart" width="600" height="200" style="margin-top:12px"></canvas>
+    </div>
+
+    <!-- Users (admin only) -->
+    <div id="users" class="window" aria-hidden="true">
+      <h2>👥 User Management</h2>
+      <p>(Admin only)</p>
+      <ul id="userList"></ul>
+    </div>
+
+    <!-- viewer modal -->
+    <div id="viewerModal" class="viewer-modal hidden" aria-hidden="true">
+      <div class="viewer-inner">
+        <button id="closeViewer" class="viewer-close">Close</button>
+        <iframe id="viewerFrame" style="width:100%;height:70vh;border:0;background:#fff"></iframe>
+      </div>
+    </div>
+
+    <!-- Dock -->
+    <div class="dock" role="navigation" aria-label="Dock">
+      <div class="dock-item" onclick="openWindow('documents')" title="Documents">📂</div>
+      <div class="dock-item" onclick="openWindow('photos')" title="Photos">🖼️</div>
+      <div class="dock-item" onclick="openWindow('settings')" title="Settings">⚙️</div>
+      <div class="dock-item" onclick="openWindow('reports')" title="Reports">📊</div>
+      <div id="userMgmtDock" class="dock-item" onclick="openWindow('users')" title="User Management">👥</div>
     </div>
   </div>
 
-  <div class="glass hidden" id="registerCard">
-    <h2>Register</h2>
-    <input type="text" id="newUser" placeholder="New Username" required>
-    <input type="password" id="newPass" placeholder="New Password" required>
-    <button onclick="register()">Register</button>
-    <div class="link">
-      <a href="#" onclick="hideRegister()">Back to Login</a>
-    </div>
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* ---------- Small debug helper to show image load errors in console ---------- */
+(function debugBackground() {
+  const bg = document.getElementById('backgroundDiv');
+  // Try to detect if local image loads; fallback is automatic in CSS, but this logs useful info.
+  const testLocal = new Image();
+  testLocal.onload = () => console.log('Local background.png loaded successfully.');
+  testLocal.onerror = () => console.warn('Local background.png NOT found or failed to load; using fallback remote image.');
+  testLocal.src = 'background.png';
+})();
 
-  <script>
-    let users = {
-      "arkandu.khan": "Arkandu@1998" // Admin login
+/* ---------- Minimal IndexedDB helpers (same as before) ---------- */
+const DB_NAME = 'visionDriveDB';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const rq = indexedDB.open(DB_NAME, DB_VERSION);
+    rq.onerror = () => reject(rq.error);
+    rq.onupgradeneeded = () => {
+      db = rq.result;
+      if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('docs')) db.createObjectStore('docs', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('users')) db.createObjectStore('users', { keyPath: 'username' });
     };
+    rq.onsuccess = () => { db = rq.result; resolve(db); };
+  });
+}
+function addRecord(storeName, record) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const rq = store.add(record);
+    rq.onsuccess = () => resolve(rq.result);
+    rq.onerror = () => reject(rq.error);
+  });
+}
+function getAllRecords(storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const rq = store.getAll();
+    rq.onsuccess = () => resolve(rq.result);
+    rq.onerror = () => reject(rq.error);
+  });
+}
+function clearStore(storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const rq = store.clear();
+    rq.onsuccess = () => resolve();
+    rq.onerror = () => reject(rq.error);
+  });
+}
 
-    function login() {
-      let u = document.getElementById("username").value;
-      let p = document.getElementById("password").value;
+/* ---------- App logic ---------- */
+const userLabel = document.getElementById('userLabel');
+const logoutBtn = document.getElementById('logoutBtn');
 
-      if (users[u] && users[u] === p) {
-        localStorage.setItem("loggedInUser", u);
-        window.location.href = "home.html";
-      } else {
-        alert("Invalid login. Please try again!");
+let loggedInUser = localStorage.getItem('loggedInUser') || null;
+let isAdmin = (loggedInUser === 'arkandu.khan' || loggedInUser === 'Admin Arkandu');
+
+if (!loggedInUser) {
+  // Not logged in → send to login page
+  window.location.href = 'index.html';
+} else {
+  userLabel.innerText = loggedInUser;
+}
+
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('loggedInUser');
+  window.location.href = 'index.html';
+});
+
+/* admin dock visibility */
+const userMgmtDock = document.getElementById('userMgmtDock');
+if (!isAdmin) userMgmtDock.style.display = 'none';
+
+/* elements */
+const photoInput = document.getElementById('photoInput');
+const docInput = document.getElementById('docInput');
+const docList = document.getElementById('docList');
+const photoGallery = document.getElementById('photoGallery');
+const clearDocsBtn = document.getElementById('clearDocsBtn');
+const clearPhotosBtn = document.getElementById('clearPhotosBtn');
+
+const reportLogins = document.getElementById('reportLogins');
+const reportDocs = document.getElementById('reportDocs');
+const reportPhotos = document.getElementById('reportPhotos');
+
+const viewerModal = document.getElementById('viewerModal');
+const viewerFrame = document.getElementById('viewerFrame');
+document.getElementById('closeViewer').addEventListener('click', () => {
+  viewerModal.classList.add('hidden');
+  viewerFrame.src = 'about:blank';
+});
+
+/* window management */
+function openWindow(id) {
+  document.querySelectorAll('.window').forEach(w => w.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+  if (id === 'documents') renderDocs();
+  if (id === 'photos') renderPhotos();
+  if (id === 'reports') refreshReports();
+  if (id === 'users') renderUsers();
+}
+
+/* store file(s) */
+async function storeFiles(fileList, storeName) {
+  for (const f of fileList) {
+    const record = {
+      name: f.name,
+      type: f.type,
+      size: f.size,
+      createdAt: Date.now(),
+      blob: f // File is a Blob; IDB can store it
+    };
+    await addRecord(storeName, record);
+  }
+}
+
+/* render documents */
+async function renderDocs() {
+  const docs = await getAllRecords('docs');
+  docList.innerHTML = '';
+  docs.forEach(d => {
+    const li = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(d.blob);
+    link.innerText = d.name;
+    link.download = d.name;
+    link.target = '_blank';
+    link.onclick = (ev) => {
+      if (d.type === 'application/pdf' || d.type.startsWith('text/') || d.type === '') {
+        ev.preventDefault();
+        viewerFrame.src = link.href;
+        viewerModal.classList.remove('hidden');
       }
-    }
+    };
+    li.appendChild(link);
+    const meta = document.createElement('span');
+    meta.style.marginLeft = '10px'; meta.style.opacity = '0.8';
+    meta.innerText = ` (${Math.round(d.size/1024)} KB)`;
+    li.appendChild(meta);
+    docList.appendChild(li);
+  });
+  reportDocs.innerText = docs.length;
+}
 
-    function showRegister() {
-      document.getElementById("loginCard").classList.add("hidden");
-      document.getElementById("registerCard").classList.remove("hidden");
-    }
+/* render photos */
+async function renderPhotos() {
+  const photos = await getAllRecords('photos');
+  photoGallery.innerHTML = '';
+  photos.forEach(p => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(p.blob);
+    img.className = 'preview-img';
+    img.title = p.name;
+    img.onclick = () => {
+      viewerFrame.src = img.src;
+      viewerModal.classList.remove('hidden');
+    };
+    photoGallery.appendChild(img);
+  });
+  reportPhotos.innerText = photos.length;
+}
 
-    function hideRegister() {
-      document.getElementById("loginCard").classList.remove("hidden");
-      document.getElementById("registerCard").classList.add("hidden");
-    }
+/* render users */
+async function renderUsers() {
+  const users = await getAllRecords('users');
+  const userListEl = document.getElementById('userList');
+  userListEl.innerHTML = '';
+  users.forEach(u => {
+    const li = document.createElement('li');
+    li.innerText = `${u.username} (${u.displayName || '-'})`;
+    userListEl.appendChild(li);
+  });
+}
 
-    function register() {
-      let newUser = document.getElementById("newUser").value;
-      let newPass = document.getElementById("newPass").value;
+/* reports */
+async function refreshReports() {
+  const logins = parseInt(localStorage.getItem('loginCount') || '1', 10);
+  reportLogins.innerText = logins;
+  const docs = await getAllRecords('docs');
+  const photos = await getAllRecords('photos');
+  reportDocs.innerText = docs.length;
+  reportPhotos.innerText = photos.length;
 
-      if (newUser && newPass) {
-        if (users[newUser]) {
-          alert("User already exists!");
-        } else {
-          users[newUser] = newPass;
-          alert("User registered successfully! Now login.");
-          hideRegister();
-        }
-      } else {
-        alert("Please enter a username and password.");
-      }
-    }
-  </script>
+  // chart
+  const ctx = document.getElementById('reportChart').getContext('2d');
+  if (window.usageChart) window.usageChart.destroy();
+  window.usageChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Logins','Docs','Photos'],
+      datasets:[{ label:'Counts', data:[logins, docs.length, photos.length],
+        backgroundColor: ['rgba(75,192,192,0.6)','rgba(255,205,86,0.6)','rgba(153,102,255,0.6)'] }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false }
+  });
+}
+
+/* clear stores */
+clearDocsBtn.addEventListener('click', async () => {
+  if (!confirm('Clear all documents?')) return;
+  await clearStore('docs');
+  await renderDocs();
+  await refreshReports();
+});
+clearPhotosBtn.addEventListener('click', async () => {
+  if (!confirm('Clear all photos?')) return;
+  await clearStore('photos');
+  await renderPhotos();
+  await refreshReports();
+});
+
+/* upload handlers */
+photoInput.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  await storeFiles(files, 'photos');
+  await renderPhotos();
+  await refreshReports();
+  photoInput.value = '';
+});
+docInput.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  await storeFiles(files, 'docs');
+  await renderDocs();
+  await refreshReports();
+  docInput.value = '';
+});
+
+/* settings save */
+document.getElementById('saveSettings').addEventListener('click', async () => {
+  const displayName = document.getElementById('displayName').value.trim();
+  if (!displayName) { alert('Enter a display name first'); return; }
+  const tx = db.transaction('users', 'readwrite');
+  tx.objectStore('users').put({ username: loggedInUser, displayName });
+  alert('Saved');
+  renderUsers();
+});
+
+/* init: open DB and bootstrap */
+(async () => {
+  await openDB();
+  const tx = db.transaction('users', 'readwrite');
+  tx.objectStore('users').put({ username: loggedInUser, displayName: loggedInUser });
+
+  // default: open documents
+  openWindow('documents');
+  document.getElementById('userLabel').innerText = loggedInUser;
+
+  await renderDocs();
+  await renderPhotos();
+  await renderUsers();
+  await refreshReports();
+})();
+</script>
 </body>
 </html>
